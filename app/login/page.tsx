@@ -1,9 +1,16 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function LoginPage() {
   return (
@@ -12,18 +19,28 @@ export default function LoginPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">로그인</CardTitle>
-            <CardDescription>계정 정보를 입력하여 로그인하세요.</CardDescription>
+            <CardDescription>
+              계정 정보를 입력하여 로그인하세요.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">이메일</Label>
-                <Input id="email" type="email" placeholder="name@example.com" required />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">비밀번호</Label>
-                  <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-primary hover:underline"
+                  >
                     비밀번호 찾기
                   </Link>
                 </div>
@@ -44,7 +61,9 @@ export default function LoginPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">또는</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  또는
+                </span>
               </div>
             </div>
             <div className="space-y-3">
@@ -73,8 +92,11 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <div className="text-sm text-center">
-              계정이 없으신가요?{" "}
-              <Link href="/signup" className="underline underline-offset-4 hover:text-primary">
+              계정이 없으신가요?{' '}
+              <Link
+                href="/signup"
+                className="underline underline-offset-4 hover:text-primary"
+              >
                 회원가입
               </Link>
             </div>
@@ -82,5 +104,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

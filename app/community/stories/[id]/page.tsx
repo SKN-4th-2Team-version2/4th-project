@@ -1,15 +1,24 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import Link from "next/link"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
-export default function StoryDetailPage({ params }: { params: { id: string } }) {
+export default function StoryDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   // 실제로는 params.id를 사용하여 API에서 데이터를 가져올 것
   const story = {
     id: 1,
-    title: "첫 걸음마의 감동, 그 순간을 기록합니다",
+    title: '첫 걸음마의 감동, 그 순간을 기록합니다',
     content: `우리 아이가 드디어 첫 걸음마를 떼었어요. 그동안 기다림의 시간과 첫 걸음마의 감동적인 순간, 그리고 그 이후 아이의 변화에 대한 이야기를 나누고 싶어요.
 
 아이가 태어나고 나서 매 순간이 새롭고 특별했지만, 첫 걸음마는 정말 잊을 수 없는 순간이었습니다. 11개월이 되던 날, 소파에 기대어 서 있던 아이가 갑자기 손을 놓고 세 걸음을 걸었어요. 그 순간 저와 남편은 너무 놀라고 기뻐서 환호성을 질렀고, 아이도 자신의 성취에 신이 났는지 웃음을 터뜨렸습니다.
@@ -20,20 +29,20 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
 
 여러분의 첫 걸음마 경험은 어땠나요? 그 순간을 어떻게 기념하셨는지 궁금합니다.`,
     author: {
-      name: "행복한맘",
-      image: "/abstract-profile.png",
-      level: "열심 부모",
+      name: '행복한맘',
+      image: '/abstract-profile.png',
+      level: '열심 부모',
       posts: 24,
     },
-    category: "성장일기",
-    tags: ["첫걸음마", "성장기록", "감동순간"],
+    category: '성장일기',
+    tags: ['첫걸음마', '성장기록', '감동순간'],
     comments: 12,
     views: 245,
     likes: 38,
-    created: "2023년 5월 14일",
+    created: '2023년 5월 14일',
     isBookmarked: false,
-    thumbnail: "/placeholder.svg?key=ed35d",
-  }
+    thumbnail: '/placeholder.svg?key=ed35d',
+  };
 
   const comments = [
     {
@@ -41,38 +50,38 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
       content:
         "저희 아이도 11개월에 첫 걸음마를 뗐어요! 그 순간 너무 감동적이었죠. 저는 그날을 기념해서 작은 파티를 열어줬답니다. 케이크에 '첫 걸음마 축하해'라고 써서요. 소중한 추억 공유해주셔서 감사해요!",
       author: {
-        name: "케이크맘",
-        image: "/abstract-profile.png",
-        level: "열심 부모",
+        name: '케이크맘',
+        image: '/abstract-profile.png',
+        level: '열심 부모',
       },
-      created: "2023년 5월 14일",
+      created: '2023년 5월 14일',
       likes: 5,
     },
     {
       id: 2,
       content:
-        "우리 아이는 13개월에 걷기 시작했는데, 처음에는 걱정했었어요. 하지만 아이마다 발달 속도가 다르다는 걸 깨달았죠. 첫 걸음마 영상은 정말 보물 같은 존재예요. 자주 꺼내보게 되더라고요. 행복한 육아 되세요!",
+        '우리 아이는 13개월에 걷기 시작했는데, 처음에는 걱정했었어요. 하지만 아이마다 발달 속도가 다르다는 걸 깨달았죠. 첫 걸음마 영상은 정말 보물 같은 존재예요. 자주 꺼내보게 되더라고요. 행복한 육아 되세요!',
       author: {
-        name: "느림보맘",
-        image: "/abstract-profile.png",
-        level: "슈퍼 부모",
+        name: '느림보맘',
+        image: '/abstract-profile.png',
+        level: '슈퍼 부모',
       },
-      created: "2023년 5월 15일",
+      created: '2023년 5월 15일',
       likes: 8,
     },
     {
       id: 3,
       content:
-        "첫 걸음마의 감동은 정말 말로 표현할 수 없죠! 저는 아이의 첫 걸음마 발자국을 석고로 떠서 기념했어요. 지금도 거실에 전시해두고 있답니다. 소중한 순간을 기록하는 것은 정말 중요한 것 같아요.",
+        '첫 걸음마의 감동은 정말 말로 표현할 수 없죠! 저는 아이의 첫 걸음마 발자국을 석고로 떠서 기념했어요. 지금도 거실에 전시해두고 있답니다. 소중한 순간을 기록하는 것은 정말 중요한 것 같아요.',
       author: {
-        name: "기록맘",
-        image: "/abstract-profile.png",
-        level: "열심 부모",
+        name: '기록맘',
+        image: '/abstract-profile.png',
+        level: '열심 부모',
       },
-      created: "2023년 5월 16일",
+      created: '2023년 5월 16일',
       likes: 12,
     },
-  ]
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -159,12 +168,19 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
 
       <Card className="mb-8">
         <div className="aspect-video w-full overflow-hidden">
-          <img src={story.thumbnail || "/placeholder.svg"} alt={story.title} className="w-full h-full object-cover" />
+          <img
+            src={story.thumbnail || '/placeholder.svg'}
+            alt={story.title}
+            className="w-full h-full object-cover"
+          />
         </div>
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div className="flex items-start space-x-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={story.author.image || "/placeholder.svg"} alt={story.author.name} />
+              <AvatarImage
+                src={story.author.image || '/placeholder.svg'}
+                alt={story.author.name}
+              />
               <AvatarFallback>{story.author.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <div>
@@ -174,14 +190,16 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
                   {story.author.level}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">작성일: {story.created}</p>
+              <p className="text-xs text-muted-foreground">
+                작성일: {story.created}
+              </p>
             </div>
           </div>
           <Badge>{story.category}</Badge>
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            {story.content.split("\n\n").map((paragraph, index) => (
+            {story.content.split('\n\n').map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
           </div>
@@ -260,17 +278,26 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
               <CardHeader className="flex flex-row items-start justify-between space-y-0">
                 <div className="flex items-start space-x-4">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={comment.author.image || "/placeholder.svg"} alt={comment.author.name} />
-                    <AvatarFallback>{comment.author.name.slice(0, 2)}</AvatarFallback>
+                    <AvatarImage
+                      src={comment.author.image || '/placeholder.svg'}
+                      alt={comment.author.name}
+                    />
+                    <AvatarFallback>
+                      {comment.author.name.slice(0, 2)}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{comment.author.name}</p>
+                      <p className="text-sm font-medium">
+                        {comment.author.name}
+                      </p>
                       <Badge variant="outline" className="text-xs">
                         {comment.author.level}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">작성일: {comment.created}</p>
+                    <p className="text-xs text-muted-foreground">
+                      작성일: {comment.created}
+                    </p>
                   </div>
                 </div>
               </CardHeader>
@@ -278,7 +305,11 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
                 <p className="text-sm">{comment.content}</p>
               </CardContent>
               <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -318,7 +349,7 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
           </CardContent>
           <CardFooter className="flex justify-between border-t px-6 py-3">
             <p className="text-xs text-muted-foreground">
-              댓글 작성 시{" "}
+              댓글 작성 시{' '}
               <Link href="/terms" className="text-primary hover:underline">
                 커뮤니티 이용규칙
               </Link>
@@ -339,5 +370,5 @@ export default function StoryDetailPage({ params }: { params: { id: string } }) 
         </div>
       </div>
     </div>
-  )
+  );
 }

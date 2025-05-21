@@ -1,19 +1,16 @@
-import Link from "next/link"
-import { Logo } from "./logo"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import Link from 'next/link';
+import { Logo } from './logo';
 
 export default function Footer() {
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
       <div className="container py-12 md:py-16">
-        {/* 상단 섹션 - 로고, 설명, 뉴스레터 */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
+        <div className="md:grid-cols-4 gap-8 py-8 border-t border-b border-slate-200 dark:border-slate-800 flex justify-around">
           <div className="space-y-4 md:col-span-2 lg:col-span-1">
             <Logo size="lg" />
             <p className="text-sm text-muted-foreground max-w-md">
-              '초보 엄마 아빠의 부담을 덜어준다'는 의미의 마파덜은 부모님들에게 신뢰할 수 있는 육아 정보와 상호 지원
-              환경을 제공하는 플랫폼입니다.
+              '초보 엄마 아빠의 부담을 덜어준다'는 의미의 마파덜은 부모님들에게
+              신뢰할 수 있는 육아 정보와 상호 지원 환경을 제공하는 플랫폼입니다.
             </p>
             <div className="flex space-x-4 mt-6">
               <Link
@@ -97,27 +94,10 @@ export default function Footer() {
               </Link>
             </div>
           </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-primary">뉴스레터 구독</h3>
-            <p className="text-sm text-muted-foreground">최신 육아 정보와 유용한 팁을 이메일로 받아보세요.</p>
-            <div className="flex gap-2 max-w-md">
-              <Input
-                type="email"
-                placeholder="이메일 주소"
-                className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-primary/20 dark:focus:ring-primary/30"
-              />
-              <Button type="submit" className="dark:hover:bg-primary/90">
-                구독
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* 중간 섹션 - 링크 그룹 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-8 border-t border-b border-slate-200 dark:border-slate-800">
           <div className="space-y-3">
-            <h4 className="font-medium text-primary dark:text-primary/90">서비스</h4>
+            <h4 className="font-medium text-primary dark:text-primary/90">
+              서비스
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -155,67 +135,9 @@ export default function Footer() {
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-medium text-primary dark:text-primary/90">커뮤니티</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/community/questions"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  질문 게시판
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/community/stories"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  육아 이야기
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/community/tips"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  육아 팁
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-medium text-primary dark:text-primary/90">지원</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/faq"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  자주 묻는 질문
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  문의하기
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/help"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  도움말
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-medium text-primary dark:text-primary/90">법적 정보</h4>
+            <h4 className="font-medium text-primary dark:text-primary/90">
+              법적 정보
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -253,5 +175,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

@@ -1,15 +1,20 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import Link from "next/link"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 export default function TipDetailPage({ params }: { params: { id: string } }) {
   // 실제로는 params.id를 사용하여 API에서 데이터를 가져올 것
   const tip = {
     id: 1,
-    title: "아이와의 효과적인 대화법 5가지",
+    title: '아이와의 효과적인 대화법 5가지',
     content: `아이와 효과적으로 대화하는 방법을 알려드립니다. 부모와 아이 사이의 소통은 신뢰 관계 형성과 아이의 정서 발달에 매우 중요합니다. 다음 5가지 방법을 실천해보세요.
 
 ## 1. 아이의 눈높이에 맞추기
@@ -34,31 +39,31 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
 
 이 다섯 가지 방법을 일상에서 꾸준히 실천하면, 아이와의 대화가 더 풍부해지고 관계도 더욱 깊어질 것입니다. 완벽할 필요는 없습니다. 때로는 실수할 수도 있지만, 중요한 것은 아이와 진정성 있게 소통하려는 노력입니다.`,
     author: {
-      name: "소통맘",
-      image: "/abstract-profile.png",
-      level: "열심 부모",
+      name: '소통맘',
+      image: '/abstract-profile.png',
+      level: '열심 부모',
       posts: 24,
     },
-    category: "의사소통",
-    tags: ["대화법", "감정코칭", "경청"],
+    category: '의사소통',
+    tags: ['대화법', '감정코칭', '경청'],
     comments: 15,
     views: 320,
     likes: 42,
-    created: "2023년 5월 14일",
+    created: '2023년 5월 14일',
     isBookmarked: false,
-  }
+  };
 
   const comments = [
     {
       id: 1,
       content:
-        "정말 유용한 팁 감사합니다! 특히 아이의 눈높이에 맞추는 것이 생각보다 효과가 좋더라고요. 저도 실천하고 있는데, 아이가 더 편안하게 대화하는 것 같아요.",
+        '정말 유용한 팁 감사합니다! 특히 아이의 눈높이에 맞추는 것이 생각보다 효과가 좋더라고요. 저도 실천하고 있는데, 아이가 더 편안하게 대화하는 것 같아요.',
       author: {
-        name: "배움맘",
-        image: "/abstract-profile.png",
-        level: "열심 부모",
+        name: '배움맘',
+        image: '/abstract-profile.png',
+        level: '열심 부모',
       },
-      created: "2023년 5월 14일",
+      created: '2023년 5월 14일',
       likes: 8,
     },
     {
@@ -66,11 +71,11 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
       content:
         "열린 질문하기가 정말 중요한 것 같아요. '학교 어땠어?'라고 물으면 항상 '그냥'이라는 대답만 듣다가, 구체적인 질문으로 바꾸니 아이가 학교에서 있었던 일을 더 많이 이야기해주네요!",
       author: {
-        name: "소통중인맘",
-        image: "/abstract-profile.png",
-        level: "슈퍼 부모",
+        name: '소통중인맘',
+        image: '/abstract-profile.png',
+        level: '슈퍼 부모',
       },
-      created: "2023년 5월 15일",
+      created: '2023년 5월 15일',
       likes: 12,
     },
     {
@@ -78,14 +83,14 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
       content:
         "아이의 감정을 인정해주는 부분이 가장 어려운 것 같아요. 습관적으로 '괜찮아'라고 말하게 되는데, 이제는 아이의 감정을 먼저 인정해주려고 노력하고 있습니다. 좋은 글 감사합니다!",
       author: {
-        name: "노력하는아빠",
-        image: "/abstract-profile.png",
-        level: "열심 부모",
+        name: '노력하는아빠',
+        image: '/abstract-profile.png',
+        level: '열심 부모',
       },
-      created: "2023년 5월 16일",
+      created: '2023년 5월 16일',
       likes: 10,
     },
-  ]
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -174,7 +179,10 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div className="flex items-start space-x-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={tip.author.image || "/placeholder.svg"} alt={tip.author.name} />
+              <AvatarImage
+                src={tip.author.image || '/placeholder.svg'}
+                alt={tip.author.name}
+              />
               <AvatarFallback>{tip.author.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <div>
@@ -184,22 +192,24 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
                   {tip.author.level}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">작성일: {tip.created}</p>
+              <p className="text-xs text-muted-foreground">
+                작성일: {tip.created}
+              </p>
             </div>
           </div>
           <Badge>{tip.category}</Badge>
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            {tip.content.split("\n\n").map((paragraph, index) => {
-              if (paragraph.startsWith("## ")) {
+            {tip.content.split('\n\n').map((paragraph, index) => {
+              if (paragraph.startsWith('## ')) {
                 return (
                   <h2 key={index} className="text-xl font-bold mt-6 mb-3">
-                    {paragraph.replace("## ", "")}
+                    {paragraph.replace('## ', '')}
                   </h2>
-                )
+                );
               }
-              return <p key={index}>{paragraph}</p>
+              return <p key={index}>{paragraph}</p>;
             })}
           </div>
           <div className="flex flex-wrap gap-2 mt-6">
@@ -277,17 +287,26 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
               <CardHeader className="flex flex-row items-start justify-between space-y-0">
                 <div className="flex items-start space-x-4">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={comment.author.image || "/placeholder.svg"} alt={comment.author.name} />
-                    <AvatarFallback>{comment.author.name.slice(0, 2)}</AvatarFallback>
+                    <AvatarImage
+                      src={comment.author.image || '/placeholder.svg'}
+                      alt={comment.author.name}
+                    />
+                    <AvatarFallback>
+                      {comment.author.name.slice(0, 2)}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{comment.author.name}</p>
+                      <p className="text-sm font-medium">
+                        {comment.author.name}
+                      </p>
                       <Badge variant="outline" className="text-xs">
                         {comment.author.level}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">작성일: {comment.created}</p>
+                    <p className="text-xs text-muted-foreground">
+                      작성일: {comment.created}
+                    </p>
                   </div>
                 </div>
               </CardHeader>
@@ -295,7 +314,11 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
                 <p className="text-sm">{comment.content}</p>
               </CardContent>
               <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -335,7 +358,7 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
           </CardContent>
           <CardFooter className="flex justify-between border-t px-6 py-3">
             <p className="text-xs text-muted-foreground">
-              댓글 작성 시{" "}
+              댓글 작성 시{' '}
               <Link href="/terms" className="text-primary hover:underline">
                 커뮤니티 이용규칙
               </Link>
@@ -356,5 +379,5 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { Logo } from "../logo"
+import { Logo } from '../logo';
 
 export function MugPreview() {
   return (
@@ -17,7 +17,9 @@ export function MugPreview() {
               {/* 로고 배치 */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%]">
                 <Logo size="sm" />
-                <p className="text-[10px] text-center text-muted-foreground mt-1">육아 부담을 덜어드립니다</p>
+                <p className="text-[10px] text-center text-muted-foreground mt-1">
+                  육아 부담을 덜어드립니다
+                </p>
               </div>
             </div>
           </div>
@@ -35,7 +37,9 @@ export function MugPreview() {
               {/* 로고 배치 */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%]">
                 <Logo variant="white" size="sm" />
-                <p className="text-[10px] text-center text-white mt-1">육아 부담을 덜어드립니다</p>
+                <p className="text-[10px] text-center text-white mt-1">
+                  육아 부담을 덜어드립니다
+                </p>
               </div>
             </div>
           </div>
@@ -43,5 +47,5 @@ export function MugPreview() {
         </div>
       </div>
     </div>
-  )
+  );
 }

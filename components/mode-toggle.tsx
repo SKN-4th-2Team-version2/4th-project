@@ -1,19 +1,24 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+import * as React from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function ModeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   // 콘솔에 현재 테마 상태를 출력하여 디버깅
   React.useEffect(() => {
-    console.log("Current theme:", theme)
-  }, [theme])
+    console.log('Current theme:', theme);
+  }, [theme]);
 
   return (
     <DropdownMenu>
@@ -25,10 +30,16 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>라이트 모드</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>다크 모드</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>시스템 설정</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('light')}>
+          라이트 모드
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>
+          다크 모드
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>
+          시스템 설정
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { Logo } from "../logo"
+import { Logo } from '../logo';
 
 export function StickersPreview() {
   return (
@@ -18,7 +18,9 @@ export function StickersPreview() {
         <div className="flex flex-col items-center">
           <div className="w-full aspect-square bg-white rounded-full shadow-md flex flex-col items-center justify-center p-4 border">
             <Logo size="sm" />
-            <p className="text-[10px] text-muted-foreground mt-1">육아 부담을 덜어드립니다</p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              육아 부담을 덜어드립니다
+            </p>
           </div>
           <p className="text-xs text-center mt-2">원형 로고 + 텍스트</p>
         </div>
@@ -64,5 +66,5 @@ export function StickersPreview() {
         </div>
       </div>
     </div>
-  )
+  );
 }

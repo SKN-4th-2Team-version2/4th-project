@@ -1,4 +1,4 @@
-import { Logo } from "../logo"
+import { Logo } from '../logo';
 
 export function EcoBagPreview() {
   return (
@@ -57,5 +57,5 @@ export function EcoBagPreview() {
         </div>
       </div>
     </div>
-  )
+  );
 }

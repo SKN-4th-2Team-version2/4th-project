@@ -1,14 +1,26 @@
-import { DevelopmentRecordForm } from "@/components/development/development-record-form"
-import { DevelopmentRecordList } from "@/components/development/development-record-list"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { DevelopmentRecordForm } from '@/components/development/development-record-form';
+import { DevelopmentRecordList } from '@/components/development/development-record-list';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
-export default function DevelopmentRecordPage({ searchParams }: { searchParams: { age?: string } }) {
+export default function DevelopmentRecordPage({
+  searchParams,
+}: {
+  searchParams: { age?: string };
+}) {
   // URL 쿼리 파라미터에서 연령 그룹 가져오기
-  const ageGroupId = searchParams.age ? Number.parseInt(searchParams.age) : undefined
+  const ageGroupId = searchParams.age
+    ? Number.parseInt(searchParams.age)
+    : undefined;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -23,7 +35,8 @@ export default function DevelopmentRecordPage({ searchParams }: { searchParams: 
         </div>
         <h1 className="text-3xl font-bold mb-2">발달 기록</h1>
         <p className="text-muted-foreground">
-          아이의 발달 과정을 기록하고 관리하세요. 발달 영역별로 아이의 성장을 추적할 수 있습니다.
+          아이의 발달 과정을 기록하고 관리하세요. 발달 영역별로 아이의 성장을
+          추적할 수 있습니다.
         </p>
       </div>
 
@@ -47,7 +60,9 @@ export default function DevelopmentRecordPage({ searchParams }: { searchParams: 
           <Card>
             <CardHeader>
               <CardTitle>발달 기록 가이드</CardTitle>
-              <CardDescription>아이의 발달을 효과적으로 기록하는 방법</CardDescription>
+              <CardDescription>
+                아이의 발달을 효과적으로 기록하는 방법
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -70,10 +85,12 @@ export default function DevelopmentRecordPage({ searchParams }: { searchParams: 
                     <strong>인지 발달</strong>: 문제 해결 능력, 기억력, 주의력
                   </li>
                   <li>
-                    <strong>언어 발달</strong>: 언어 이해력, 표현력, 의사소통 능력
+                    <strong>언어 발달</strong>: 언어 이해력, 표현력, 의사소통
+                    능력
                   </li>
                   <li>
-                    <strong>사회성 발달</strong>: 대인 관계, 감정 표현, 사회적 규칙 이해
+                    <strong>사회성 발달</strong>: 대인 관계, 감정 표현, 사회적
+                    규칙 이해
                   </li>
                 </ul>
               </div>
@@ -105,5 +122,5 @@ export default function DevelopmentRecordPage({ searchParams }: { searchParams: 
         </div>
       </div>
     </div>
-  )
+  );
 }

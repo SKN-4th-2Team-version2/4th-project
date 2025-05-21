@@ -1,145 +1,158 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function TipsPage() {
   // 육아 팁 목록 데이터 (실제로는 API에서 가져올 것)
   const tips = [
     {
       id: 1,
-      title: "아이와의 효과적인 대화법 5가지",
+      title: '아이와의 효과적인 대화법 5가지',
       content:
-        "아이와 효과적으로 대화하는 방법을 알려드립니다. 아이의 말에 귀 기울이고, 아이의 감정을 인정해주며, 열린 질문을 하는 등 부모와 아이 사이의 소통을 돕는 실질적인 팁들을 소개합니다.",
+        '아이와 효과적으로 대화하는 방법을 알려드립니다. 아이의 말에 귀 기울이고, 아이의 감정을 인정해주며, 열린 질문을 하는 등 부모와 아이 사이의 소통을 돕는 실질적인 팁들을 소개합니다.',
       author: {
-        name: "소통맘",
-        image: "/abstract-profile.png",
+        name: '소통맘',
+        image: '/abstract-profile.png',
       },
-      category: "의사소통",
-      tags: ["대화법", "감정코칭", "경청"],
+      category: '의사소통',
+      tags: ['대화법', '감정코칭', '경청'],
       comments: 15,
       views: 320,
       likes: 42,
-      created: "2일 전",
+      created: '2일 전',
     },
     {
       id: 2,
-      title: "영유아 수면 문제 해결하기",
+      title: '영유아 수면 문제 해결하기',
       content:
-        "아이의 수면 패턴을 개선하고 숙면을 돕는 방법을 알려드립니다. 수면 루틴 만들기, 수면 환경 조성하기, 자주 깨는 아이 재우기 등 실제로 효과 있는 수면 팁을 공유합니다.",
+        '아이의 수면 패턴을 개선하고 숙면을 돕는 방법을 알려드립니다. 수면 루틴 만들기, 수면 환경 조성하기, 자주 깨는 아이 재우기 등 실제로 효과 있는 수면 팁을 공유합니다.',
       author: {
-        name: "수면전문가맘",
-        image: "/abstract-profile.png",
+        name: '수면전문가맘',
+        image: '/abstract-profile.png',
       },
-      category: "수면",
-      tags: ["숙면", "수면루틴", "밤중수유"],
+      category: '수면',
+      tags: ['숙면', '수면루틴', '밤중수유'],
       comments: 23,
       views: 415,
       likes: 56,
-      created: "3일 전",
+      created: '3일 전',
     },
     {
       id: 3,
-      title: "편식하는 아이 식습관 개선하기",
+      title: '편식하는 아이 식습관 개선하기',
       content:
-        "까다로운 식성을 가진 아이의 식습관을 개선하는 전략을 소개합니다. 음식에 대한 긍정적인 경험 만들기, 다양한 식재료 소개하기, 아이가 참여하는 요리 활동 등 실용적인 방법들을 알려드립니다.",
+        '까다로운 식성을 가진 아이의 식습관을 개선하는 전략을 소개합니다. 음식에 대한 긍정적인 경험 만들기, 다양한 식재료 소개하기, 아이가 참여하는 요리 활동 등 실용적인 방법들을 알려드립니다.',
       author: {
-        name: "영양사맘",
-        image: "/abstract-profile.png",
+        name: '영양사맘',
+        image: '/abstract-profile.png',
       },
-      category: "식이",
-      tags: ["편식", "식습관", "영양"],
+      category: '식이',
+      tags: ['편식', '식습관', '영양'],
       comments: 18,
       views: 380,
       likes: 47,
-      created: "5일 전",
+      created: '5일 전',
     },
     {
       id: 4,
-      title: "형제간 다툼 중재하는 방법",
+      title: '형제간 다툼 중재하는 방법',
       content:
-        "형제자매 간의 다툼을 효과적으로 중재하고 해결하는 방법을 알려드립니다. 공평하게 대하기, 감정 표현 돕기, 문제 해결 능력 키우기 등 형제간 건강한 관계 형성을 위한 팁을 공유합니다.",
+        '형제자매 간의 다툼을 효과적으로 중재하고 해결하는 방법을 알려드립니다. 공평하게 대하기, 감정 표현 돕기, 문제 해결 능력 키우기 등 형제간 건강한 관계 형성을 위한 팁을 공유합니다.',
       author: {
-        name: "두아이맘",
-        image: "/abstract-profile.png",
+        name: '두아이맘',
+        image: '/abstract-profile.png',
       },
-      category: "관계",
-      tags: ["형제", "다툼", "중재"],
+      category: '관계',
+      tags: ['형제', '다툼', '중재'],
       comments: 20,
       views: 350,
       likes: 38,
-      created: "1주일 전",
+      created: '1주일 전',
     },
     {
       id: 5,
-      title: "아이 짜증 다루는 10가지 방법",
+      title: '아이 짜증 다루는 10가지 방법',
       content:
-        "아이의 짜증과 떼쓰기에 대처하는 효과적인 방법을 소개합니다. 감정 인정하기, 명확한 경계 설정하기, 주의 전환하기 등 실제 상황에서 활용할 수 있는 구체적인 전략들을 알려드립니다.",
+        '아이의 짜증과 떼쓰기에 대처하는 효과적인 방법을 소개합니다. 감정 인정하기, 명확한 경계 설정하기, 주의 전환하기 등 실제 상황에서 활용할 수 있는 구체적인 전략들을 알려드립니다.',
       author: {
-        name: "심리상담사맘",
-        image: "/abstract-profile.png",
+        name: '심리상담사맘',
+        image: '/abstract-profile.png',
       },
-      category: "행동",
-      tags: ["짜증", "감정조절", "훈육"],
+      category: '행동',
+      tags: ['짜증', '감정조절', '훈육'],
       comments: 25,
       views: 430,
       likes: 52,
-      created: "2주일 전",
+      created: '2주일 전',
     },
     {
       id: 6,
-      title: "집에서 할 수 있는 창의력 놀이 활동",
+      title: '집에서 할 수 있는 창의력 놀이 활동',
       content:
-        "특별한 준비물 없이 집에서 쉽게 할 수 있는 창의력 개발 놀이 활동을 소개합니다. 연령별로 적합한 다양한 놀이 아이디어와 교육적 효과를 함께 설명해드립니다.",
+        '특별한 준비물 없이 집에서 쉽게 할 수 있는 창의력 개발 놀이 활동을 소개합니다. 연령별로 적합한 다양한 놀이 아이디어와 교육적 효과를 함께 설명해드립니다.',
       author: {
-        name: "놀이지도사",
-        image: "/abstract-profile.png",
+        name: '놀이지도사',
+        image: '/abstract-profile.png',
       },
-      category: "놀이",
-      tags: ["창의력", "실내놀이", "교구없는놀이"],
+      category: '놀이',
+      tags: ['창의력', '실내놀이', '교구없는놀이'],
       comments: 16,
       views: 310,
       likes: 45,
-      created: "3주일 전",
+      created: '3주일 전',
     },
-  ]
+  ];
 
   const categories = [
-    { value: "all", label: "전체" },
-    { value: "communication", label: "의사소통" },
-    { value: "sleep", label: "수면" },
-    { value: "nutrition", label: "식이" },
-    { value: "relationship", label: "관계" },
-    { value: "behavior", label: "행동" },
-    { value: "play", label: "놀이" },
-  ]
+    { value: 'all', label: '전체' },
+    { value: 'communication', label: '의사소통' },
+    { value: 'sleep', label: '수면' },
+    { value: 'nutrition', label: '식이' },
+    { value: 'relationship', label: '관계' },
+    { value: 'behavior', label: '행동' },
+    { value: 'play', label: '놀이' },
+  ];
 
   const ageGroups = [
-    { value: "all", label: "전체 연령" },
-    { value: "newborn", label: "신생아 (0-3개월)" },
-    { value: "infant", label: "영아기 (4-12개월)" },
-    { value: "toddler", label: "걸음마기 (1-2세)" },
-    { value: "preschool", label: "유아기 (3-5세)" },
-    { value: "school", label: "학령기 (6세 이상)" },
-  ]
+    { value: 'all', label: '전체 연령' },
+    { value: 'newborn', label: '신생아 (0-3개월)' },
+    { value: 'infant', label: '영아기 (4-12개월)' },
+    { value: 'toddler', label: '걸음마기 (1-2세)' },
+    { value: 'preschool', label: '유아기 (3-5세)' },
+    { value: 'school', label: '학령기 (6세 이상)' },
+  ];
 
   const sortOptions = [
-    { value: "recent", label: "최신순" },
-    { value: "popular", label: "인기순" },
-    { value: "views", label: "조회순" },
-    { value: "comments", label: "댓글 많은 순" },
-  ]
+    { value: 'recent', label: '최신순' },
+    { value: 'popular', label: '인기순' },
+    { value: 'views', label: '조회순' },
+    { value: 'comments', label: '댓글 많은 순' },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">육아 팁</h1>
-          <p className="text-muted-foreground">유용한 육아 팁과 노하우를 공유하는 공간입니다.</p>
+          <p className="text-muted-foreground">
+            유용한 육아 팁과 노하우를 공유하는 공간입니다.
+          </p>
         </div>
         <Button asChild>
           <Link href="/community/tips/new">팁 작성하기</Link>
@@ -174,7 +187,11 @@ export default function TipsPage() {
               d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
           </svg>
-          <Input type="search" placeholder="팁 검색하기" className="w-full pl-8" />
+          <Input
+            type="search"
+            placeholder="팁 검색하기"
+            className="w-full pl-8"
+          />
         </div>
         <div className="flex flex-col sm:flex-row gap-4">
           <Select defaultValue="all">
@@ -210,7 +227,10 @@ export default function TipsPage() {
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <div className="flex items-center space-x-4">
                 <Avatar>
-                  <AvatarImage src={tip.author.image || "/placeholder.svg"} alt={tip.author.name} />
+                  <AvatarImage
+                    src={tip.author.image || '/placeholder.svg'}
+                    alt={tip.author.name}
+                  />
                   <AvatarFallback>{tip.author.name.slice(0, 2)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -221,10 +241,15 @@ export default function TipsPage() {
               <Badge variant="outline">{tip.category}</Badge>
             </CardHeader>
             <CardContent className="flex-1">
-              <Link href={`/community/tips/${tip.id}`} className="hover:underline">
+              <Link
+                href={`/community/tips/${tip.id}`}
+                className="hover:underline"
+              >
                 <h3 className="font-bold text-lg mb-2">{tip.title}</h3>
               </Link>
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-3">{tip.content}</p>
+              <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+                {tip.content}
+              </p>
               <div className="flex flex-wrap gap-2">
                 {tip.tags.map((tag, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
@@ -313,7 +338,12 @@ export default function TipsPage() {
             </svg>
             <span className="sr-only">이전 페이지</span>
           </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8" aria-current="page">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8"
+            aria-current="page"
+          >
             1
           </Button>
           <Button variant="outline" size="sm" className="h-8 w-8">
@@ -348,5 +378,5 @@ export default function TipsPage() {
         </nav>
       </div>
     </div>
-  )
+  );
 }

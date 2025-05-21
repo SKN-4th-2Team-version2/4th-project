@@ -1,59 +1,76 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Link from "next/link"
-import { useState } from "react"
-import { Badge } from "@/components/ui/badge"
-import { X } from "lucide-react"
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 export default function NewStoryPage() {
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState("")
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim() !== "") {
-      e.preventDefault()
+    if (e.key === 'Enter' && tagInput.trim() !== '') {
+      e.preventDefault();
       if (!tags.includes(tagInput.trim()) && tags.length < 5) {
-        setTags([...tags, tagInput.trim()])
-        setTagInput("")
+        setTags([...tags, tagInput.trim()]);
+        setTagInput('');
       }
     }
-  }
+  };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove))
-  }
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setThumbnailPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setThumbnailPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">육아 이야기 작성하기</h1>
-        <p className="text-muted-foreground">다른 부모님들과 육아 경험을 공유해보세요.</p>
+        <p className="text-muted-foreground">
+          다른 부모님들과 육아 경험을 공유해보세요.
+        </p>
       </div>
 
       <Card className="max-w-3xl mx-auto">
         <CardHeader>
           <CardTitle>새 이야기</CardTitle>
-          <CardDescription>육아 과정에서 경험한 특별한 순간, 고민, 성장 이야기를 공유해주세요.</CardDescription>
+          <CardDescription>
+            육아 과정에서 경험한 특별한 순간, 고민, 성장 이야기를 공유해주세요.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
@@ -82,9 +99,18 @@ export default function NewStoryPage() {
           <div className="space-y-2">
             <Label htmlFor="thumbnail">대표 이미지</Label>
             <div className="flex items-center gap-4">
-              <Input id="thumbnail" type="file" accept="image/*" onChange={handleThumbnailChange} />
+              <Input
+                id="thumbnail"
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailChange}
+              />
               {thumbnailPreview && (
-                <Button variant="ghost" size="sm" onClick={() => setThumbnailPreview(null)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setThumbnailPreview(null)}
+                >
                   삭제
                 </Button>
               )}
@@ -92,28 +118,44 @@ export default function NewStoryPage() {
             {thumbnailPreview && (
               <div className="mt-2 aspect-video w-full max-w-md overflow-hidden rounded-md border">
                 <img
-                  src={thumbnailPreview || "/placeholder.svg"}
+                  src={thumbnailPreview || '/placeholder.svg'}
                   alt="썸네일 미리보기"
                   className="h-full w-full object-cover"
                 />
               </div>
             )}
-            <p className="text-xs text-muted-foreground">이야기를 대표하는 이미지를 업로드해주세요. (선택사항)</p>
+            <p className="text-xs text-muted-foreground">
+              이야기를 대표하는 이미지를 업로드해주세요. (선택사항)
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="content">내용</Label>
-            <Textarea id="content" placeholder="이야기 내용을 작성해주세요" rows={15} />
-            <p className="text-xs text-muted-foreground">경험, 감정, 배운 점 등을 자유롭게 공유해주세요.</p>
+            <Textarea
+              id="content"
+              placeholder="이야기 내용을 작성해주세요"
+              rows={15}
+            />
+            <p className="text-xs text-muted-foreground">
+              경험, 감정, 배운 점 등을 자유롭게 공유해주세요.
+            </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="tags">태그</Label>
             <div className="flex flex-wrap gap-2 mb-2">
               {tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {tag}
-                  <X size={14} className="cursor-pointer" onClick={() => handleRemoveTag(tag)} />
+                  <X
+                    size={14}
+                    className="cursor-pointer"
+                    onClick={() => handleRemoveTag(tag)}
+                  />
                 </Badge>
               ))}
             </div>
@@ -126,7 +168,8 @@ export default function NewStoryPage() {
               disabled={tags.length >= 5}
             />
             <p className="text-xs text-muted-foreground">
-              관련 키워드를 태그로 추가하면 다른 부모님들이 이야기를 찾기 쉬워집니다.
+              관련 키워드를 태그로 추가하면 다른 부모님들이 이야기를 찾기
+              쉬워집니다.
             </p>
           </div>
         </CardContent>
@@ -138,5 +181,5 @@ export default function NewStoryPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

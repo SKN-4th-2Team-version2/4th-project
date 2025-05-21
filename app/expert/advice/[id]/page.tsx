@@ -1,16 +1,25 @@
-import { CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import Link from "next/link"
+import { CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
-export default function AdviceDetailPage({ params }: { params: { id: string } }) {
+export default function AdviceDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   // 실제로는 params.id를 사용하여 API에서 데이터를 가져올 것
   const article = {
     id: 1,
-    title: "영유아기 수면 습관 형성의 중요성",
+    title: '영유아기 수면 습관 형성의 중요성',
     content: `
       <h2>영유아기 수면 습관의 중요성</h2>
       <p>생후 6개월부터 3세까지는 아이의 수면 습관이 형성되는 매우 중요한 시기입니다. 이 시기에 형성된 수면 습관은 아이의 성장과 발달에 큰 영향을 미치며, 이후 성인기까지 지속될 수 있습니다. 건강한 수면 습관은 아이의 신체적, 정신적 발달에 필수적이며, 면역 체계 강화, 정서 조절, 인지 발달에도 중요한 역할을 합니다.</p>
@@ -73,15 +82,15 @@ export default function AdviceDetailPage({ params }: { params: { id: string } })
       <p>건강한 수면 습관은 아이의 전반적인 발달과 웰빙에 중요한 역할을 합니다. 일관된 수면 루틴, 적절한 수면 환경, 그리고 부모의 인내와 지원을 통해 아이가 건강한 수면 습관을 형성할 수 있도록 도와주세요. 모든 아이는 다르므로, 자녀에게 가장 적합한 방법을 찾는 과정이 필요할 수 있습니다. 지속적인 수면 문제가 있다면 전문가의 도움을 받는 것을 주저하지 마세요.</p>
     `,
     expert: {
-      name: "김수면 박사",
-      title: "소아과 전문의",
-      image: "/caring-doctor.png",
-      bio: "서울대학교 의과대학 소아과 교수로, 영유아 수면 문제 전문가입니다. 20년 이상의 임상 경험을 바탕으로 아이들의 건강한 수면 습관 형성을 돕고 있습니다.",
+      name: '김수면 박사',
+      title: '소아과 전문의',
+      image: '/caring-doctor.png',
+      bio: '서울대학교 의과대학 소아과 교수로, 영유아 수면 문제 전문가입니다. 20년 이상의 임상 경험을 바탕으로 아이들의 건강한 수면 습관 형성을 돕고 있습니다.',
     },
-    category: "수면",
-    tags: ["수면습관", "영유아", "수면환경", "수면문제"],
-    readTime: "5분",
-    published: "2025년 5월 10일",
+    category: '수면',
+    tags: ['수면습관', '영유아', '수면환경', '수면문제'],
+    readTime: '5분',
+    published: '2025년 5월 10일',
     views: 1245,
     likes: 87,
     isLiked: false,
@@ -89,25 +98,25 @@ export default function AdviceDetailPage({ params }: { params: { id: string } })
     relatedArticles: [
       {
         id: 7,
-        title: "아이의 수면 문제, 연령별 해결 방법",
-        expert: "김수면 박사",
+        title: '아이의 수면 문제, 연령별 해결 방법',
+        expert: '김수면 박사',
       },
       {
         id: 8,
-        title: "낮잠의 중요성과 효과적인 낮잠 습관 만들기",
-        expert: "김수면 박사",
+        title: '낮잠의 중요성과 효과적인 낮잠 습관 만들기',
+        expert: '김수면 박사',
       },
       {
         id: 9,
-        title: "수면과 두뇌 발달의 관계",
-        expert: "이감정 교수",
+        title: '수면과 두뇌 발달의 관계',
+        expert: '이감정 교수',
       },
     ],
-  }
+  };
 
   // HTML 문자열을 안전하게 렌더링하기 위한 함수
   function createMarkup(html: string) {
-    return { __html: html }
+    return { __html: html };
   }
 
   return (
@@ -199,17 +208,26 @@ export default function AdviceDetailPage({ params }: { params: { id: string } })
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={article.expert.image || "/placeholder.svg"} alt={article.expert.name} />
-                  <AvatarFallback>{article.expert.name.slice(0, 2)}</AvatarFallback>
+                  <AvatarImage
+                    src={article.expert.image || '/placeholder.svg'}
+                    alt={article.expert.name}
+                  />
+                  <AvatarFallback>
+                    {article.expert.name.slice(0, 2)}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-base font-medium">{article.expert.name}</p>
+                    <p className="text-base font-medium">
+                      {article.expert.name}
+                    </p>
                     <Badge variant="outline" className="text-xs">
                       {article.expert.title}
                     </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">발행일: {article.published}</p>
+                  <p className="text-xs text-muted-foreground">
+                    발행일: {article.published}
+                  </p>
                   <div className="flex space-x-4 text-xs text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
                       <svg
@@ -316,19 +334,28 @@ export default function AdviceDetailPage({ params }: { params: { id: string } })
             <CardContent className="space-y-4">
               <div className="flex flex-col items-center text-center">
                 <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={article.expert.image || "/placeholder.svg"} alt={article.expert.name} />
-                  <AvatarFallback>{article.expert.name.slice(0, 2)}</AvatarFallback>
+                  <AvatarImage
+                    src={article.expert.image || '/placeholder.svg'}
+                    alt={article.expert.name}
+                  />
+                  <AvatarFallback>
+                    {article.expert.name.slice(0, 2)}
+                  </AvatarFallback>
                 </Avatar>
                 <h3 className="font-bold text-lg">{article.expert.name}</h3>
                 <Badge variant="outline" className="mb-2">
                   {article.expert.title}
                 </Badge>
-                <p className="text-sm text-muted-foreground">{article.expert.bio}</p>
+                <p className="text-sm text-muted-foreground">
+                  {article.expert.bio}
+                </p>
               </div>
             </CardContent>
             <CardFooter>
               <Button variant="outline" className="w-full" asChild>
-                <Link href={`/expert/profiles/${article.expert.name}`}>전문가 프로필 보기</Link>
+                <Link href={`/expert/profiles/${article.expert.name}`}>
+                  전문가 프로필 보기
+                </Link>
               </Button>
             </CardFooter>
           </Card>
@@ -342,10 +369,15 @@ export default function AdviceDetailPage({ params }: { params: { id: string } })
                 <div key={index}>
                   {index > 0 && <Separator className="my-2" />}
                   <div className="space-y-1">
-                    <Link href={`/expert/advice/${related.id}`} className="text-sm font-medium hover:underline">
+                    <Link
+                      href={`/expert/advice/${related.id}`}
+                      className="text-sm font-medium hover:underline"
+                    >
                       {related.title}
                     </Link>
-                    <p className="text-xs text-muted-foreground">{related.expert}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {related.expert}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -358,7 +390,8 @@ export default function AdviceDetailPage({ params }: { params: { id: string } })
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                이 주제에 대해 더 궁금한 점이 있으신가요? 전문가 AI에게 질문해보세요.
+                이 주제에 대해 더 궁금한 점이 있으신가요? 전문가 AI에게
+                질문해보세요.
               </p>
               <Button className="w-full" asChild>
                 <Link href="/expert/ai">AI 상담 바로가기</Link>
@@ -368,5 +401,5 @@ export default function AdviceDetailPage({ params }: { params: { id: string } })
         </div>
       </div>
     </div>
-  )
+  );
 }

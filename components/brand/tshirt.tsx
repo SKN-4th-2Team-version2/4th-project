@@ -1,4 +1,4 @@
-import { Logo } from "../logo"
+import { Logo } from '../logo';
 
 export function TshirtPreview() {
   return (
@@ -21,7 +21,9 @@ export function TshirtPreview() {
 
               {/* 슬로건 */}
               <div className="absolute top-[45%] left-1/2 -translate-x-1/2 text-center w-full">
-                <p className="text-xs text-muted-foreground">초보 엄마 아빠의 육아 부담을 덜어드립니다</p>
+                <p className="text-xs text-muted-foreground">
+                  초보 엄마 아빠의 육아 부담을 덜어드립니다
+                </p>
               </div>
             </div>
           </div>
@@ -43,7 +45,9 @@ export function TshirtPreview() {
 
               {/* 슬로건 */}
               <div className="absolute top-[45%] left-1/2 -translate-x-1/2 text-center w-full">
-                <p className="text-xs text-white">초보 엄마 아빠의 육아 부담을 덜어드립니다</p>
+                <p className="text-xs text-white">
+                  초보 엄마 아빠의 육아 부담을 덜어드립니다
+                </p>
               </div>
             </div>
           </div>
@@ -104,5 +108,5 @@ export function TshirtPreview() {
         </div>
       </div>
     </div>
-  )
+  );
 }

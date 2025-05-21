@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import React from "react"
+import React from 'react';
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,14 +14,14 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
-import { ModeToggle } from "./mode-toggle"
-import { Logo } from "./logo"
+} from '@/components/ui/navigation-menu';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { ModeToggle } from './mode-toggle';
+import { Logo } from './logo';
 
 export default function Header() {
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
     <header className="border-b sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -44,7 +44,9 @@ export default function Header() {
                             className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-blue-50 to-blue-100 p-6 no-underline outline-none focus:shadow-md"
                             href="/community"
                           >
-                            <div className="mb-2 mt-4 text-lg font-medium">부모 커뮤니티</div>
+                            <div className="mb-2 mt-4 text-lg font-medium">
+                              부모 커뮤니티
+                            </div>
                             <p className="text-sm leading-tight text-muted-foreground">
                               다른 부모님들과 경험과 지식을 나누는 공간입니다.
                             </p>
@@ -70,13 +72,22 @@ export default function Header() {
                       <ListItem href="/expert" title="AI 전문가 상담">
                         카테고리별 AI 전문가에게 질문하고 답변받기
                       </ListItem>
-                      <ListItem href="/expert/ai?category=development" title="발달 상담">
+                      <ListItem
+                        href="/expert/ai?category=development"
+                        title="발달 상담"
+                      >
                         신체, 인지, 언어, 사회성 발달 관련 상담
                       </ListItem>
-                      <ListItem href="/expert/ai?category=sleep" title="수면 상담">
+                      <ListItem
+                        href="/expert/ai?category=sleep"
+                        title="수면 상담"
+                      >
                         수면 습관, 수면 문제 관련 상담
                       </ListItem>
-                      <ListItem href="/expert/ai?category=nutrition" title="영양 상담">
+                      <ListItem
+                        href="/expert/ai?category=nutrition"
+                        title="영양 상담"
+                      >
                         이유식, 식습관, 영양 균형 관련 상담
                       </ListItem>
                     </ul>
@@ -92,7 +103,10 @@ export default function Header() {
                       <ListItem href="/development/tracker" title="발달 추적">
                         아이의 발달 상황을 영역별로 추적하고 시각적으로 확인
                       </ListItem>
-                      <ListItem href="/development/timeline" title="발달 타임라인">
+                      <ListItem
+                        href="/development/timeline"
+                        title="발달 타임라인"
+                      >
                         시간 순서대로 아이의 발달 과정을 타임라인으로 확인
                       </ListItem>
                     </ul>
@@ -100,7 +114,11 @@ export default function Header() {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <Link href="/resources" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>육아 자료실</NavigationMenuLink>
+                    <NavigationMenuLink
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      육아 자료실
+                    </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
               </NavigationMenuList>
@@ -142,7 +160,12 @@ export default function Header() {
               </Button>
             </div>
           ) : (
-            <Button variant="ghost" size="icon" onClick={() => setIsSearchOpen(true)} className="hidden md:flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchOpen(true)}
+              className="hidden md:flex"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -237,13 +260,13 @@ export default function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }
 
 const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a"> & {
-    title: string
+  React.ElementRef<'a'>,
+  React.ComponentPropsWithoutRef<'a'> & {
+    title: string;
   }
 >(({ className, title, children, ...props }, ref) => {
   return (
@@ -252,16 +275,18 @@ const ListItem = React.forwardRef<
         <a
           ref={ref}
           className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
             className,
           )}
           {...props}
         >
           <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">{children}</p>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
         </a>
       </NavigationMenuLink>
     </li>
-  )
-})
-ListItem.displayName = "ListItem"
+  );
+});
+ListItem.displayName = 'ListItem';

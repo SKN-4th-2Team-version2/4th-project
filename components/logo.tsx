@@ -1,38 +1,42 @@
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 interface LogoProps {
-  className?: string
-  variant?: "default" | "white"
-  showText?: boolean
-  size?: "sm" | "md" | "lg"
-  imageUrl?: string // 사용자 지정 이미지 URL
-  alt?: string // 이미지 대체 텍스트
+  className?: string;
+  variant?: 'default' | 'white';
+  showText?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  imageUrl?: string; // 사용자 지정 이미지 URL
+  alt?: string; // 이미지 대체 텍스트
 }
 
 export function Logo({
   className,
-  variant = "default",
+  variant = 'default',
   showText = false, // 기본값을 false로 변경
-  size = "md",
+  size = 'md',
   imageUrl,
-  alt = "마파덜 로고",
+  alt = '마파덜 로고',
 }: LogoProps) {
   const sizeClasses = {
-    sm: "h-8",
-    md: "h-10",
-    lg: "h-12",
-  }
+    sm: 'h-8',
+    md: 'h-10',
+    lg: 'h-12',
+  };
 
-  const textColor = variant === "white" ? "text-white" : "text-primary"
-  const accentColor = variant === "white" ? "#FFFFFF" : "#3B82F6" // primary blue
-  const secondaryColor = variant === "white" ? "#E2E8F0" : "#93C5FD" // lighter blue
+  const textColor = variant === 'white' ? 'text-white' : 'text-primary';
+  const accentColor = variant === 'white' ? '#FFFFFF' : '#3B82F6'; // primary blue
+  const secondaryColor = variant === 'white' ? '#E2E8F0' : '#93C5FD'; // lighter blue
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <div className={cn("relative", sizeClasses[size])}>
+    <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn('relative', sizeClasses[size])}>
         {imageUrl ? (
           // 사용자가 제공한 이미지가 있으면 이미지 표시
-          <img src={imageUrl || "/placeholder.svg"} alt={alt} className="h-full w-auto object-contain" />
+          <img
+            src={imageUrl || '/placeholder.svg'}
+            alt={alt}
+            className="h-full w-auto object-contain"
+          />
         ) : (
           // 이미지가 없으면 기본 SVG 로고 표시
           <svg
@@ -64,7 +68,11 @@ export function Logo({
         )}
       </div>
 
-      {showText && <span className={cn("font-bold text-2xl tracking-tight", textColor)}>마파덜</span>}
+      {showText && (
+        <span className={cn('font-bold text-2xl tracking-tight', textColor)}>
+          마파덜
+        </span>
+      )}
     </div>
-  )
+  );
 }

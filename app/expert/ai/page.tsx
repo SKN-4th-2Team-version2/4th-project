@@ -1,14 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ExpertChatWithCategories } from "@/components/expert-chat/expert-chat-with-categories"
-import type { CategoryType } from "@/components/expert-chat/expert-chat-with-categories"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { History } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ExpertChatWithCategories } from '@/components/expert-chat/expert-chat-with-categories';
+import type { CategoryType } from '@/components/expert-chat/expert-chat-with-categories';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { History } from 'lucide-react';
 
-export default function ExpertAIPage({ searchParams }: { searchParams: { category?: string; continue?: string } }) {
+export default function ExpertAIPage({
+  searchParams,
+}: {
+  searchParams: { category?: string; continue?: string };
+}) {
   // URL 쿼리 파라미터에서 카테고리와 이어서 할 상담 ID 가져오기
-  const category = (searchParams.category || "all") as CategoryType
-  const continueFromId = searchParams.continue
+  const category = (searchParams.category || 'all') as CategoryType;
+  const continueFromId = searchParams.continue;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -17,7 +21,8 @@ export default function ExpertAIPage({ searchParams }: { searchParams: { categor
           <div>
             <h1 className="text-3xl font-bold mb-2">전문가 AI 상담</h1>
             <p className="text-muted-foreground">
-              육아 관련 질문에 AI가 전문적인 답변을 제공합니다. 24시간 언제든지 질문하세요.
+              육아 관련 질문에 AI가 전문적인 답변을 제공합니다. 24시간 언제든지
+              질문하세요.
             </p>
           </div>
           <Button variant="outline" asChild className="flex items-center gap-2">
@@ -31,7 +36,10 @@ export default function ExpertAIPage({ searchParams }: { searchParams: { categor
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3">
-          <ExpertChatWithCategories initialCategory={category} continueFromId={continueFromId} />
+          <ExpertChatWithCategories
+            initialCategory={category}
+            continueFromId={continueFromId}
+          />
         </div>
 
         <div className="space-y-6">
@@ -76,8 +84,9 @@ export default function ExpertAIPage({ searchParams }: { searchParams: { categor
               <div className="space-y-2">
                 <h3 className="font-medium">상담 저장 기능</h3>
                 <p className="text-sm text-muted-foreground">
-                  상담 내용은 '상담 저장' 버튼을 클릭하여 저장할 수 있습니다. 저장된 상담 내용은 '상담 히스토리'
-                  페이지에서 확인하고 이어서 상담할 수 있습니다.
+                  상담 내용은 '상담 저장' 버튼을 클릭하여 저장할 수 있습니다.
+                  저장된 상담 내용은 '상담 히스토리' 페이지에서 확인하고 이어서
+                  상담할 수 있습니다.
                 </p>
               </div>
 
@@ -94,5 +103,5 @@ export default function ExpertAIPage({ searchParams }: { searchParams: { categor
         </div>
       </div>
     </div>
-  )
+  );
 }

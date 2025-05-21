@@ -1,44 +1,53 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import Link from "next/link"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
-export default function QuestionDetailPage({ params }: { params: { id: string } }) {
+export default function QuestionDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   // 실제로는 params.id를 사용하여 API에서 데이터를 가져올 것
   const question = {
     id: 1,
-    title: "12개월 아기가 아직 걷지 못해요. 걱정해야 할까요?",
+    title: '12개월 아기가 아직 걷지 못해요. 걱정해야 할까요?',
     content:
-      "우리 아기가 12개월인데 아직 걷지 못하고 있어요. 기어다니는 것은 잘하는데 일어서려고 하지 않아요. 또래 아이들은 대부분 걷기 시작했다고 하는데 걱정해야 할까요?\n\n아기가 잡고 서는 것은 가능하지만 혼자 서려고 하지 않고, 손을 잡아도 걸음을 떼려고 하지 않아요. 발달 지연이 있는 건지 걱정됩니다. 비슷한 경험이 있으신 부모님들 조언 부탁드려요.",
+      '우리 아기가 12개월인데 아직 걷지 못하고 있어요. 기어다니는 것은 잘하는데 일어서려고 하지 않아요. 또래 아이들은 대부분 걷기 시작했다고 하는데 걱정해야 할까요?\n\n아기가 잡고 서는 것은 가능하지만 혼자 서려고 하지 않고, 손을 잡아도 걸음을 떼려고 하지 않아요. 발달 지연이 있는 건지 걱정됩니다. 비슷한 경험이 있으신 부모님들 조언 부탁드려요.',
     author: {
-      name: "걱정많은엄마",
-      image: "/abstract-profile.png",
-      level: "열심 부모",
+      name: '걱정많은엄마',
+      image: '/abstract-profile.png',
+      level: '열심 부모',
       posts: 15,
     },
-    category: "발달",
-    tags: ["영아기", "운동발달", "걸음마"],
+    category: '발달',
+    tags: ['영아기', '운동발달', '걸음마'],
     replies: 8,
     views: 124,
     likes: 15,
-    created: "2023년 5월 14일",
+    created: '2023년 5월 14일',
     isBookmarked: false,
-  }
+  };
 
   const answers = [
     {
       id: 1,
       content:
-        "안녕하세요! 저희 아이도 13개월까지 걷지 않았어요. 기어다니는 것만 열심히 하더니 갑자기 어느 날 일어나서 걷기 시작했답니다. 아이마다 발달 속도가 다르니 너무 걱정하지 마세요. 15개월까지는 정상 범위라고 알고 있어요.",
+        '안녕하세요! 저희 아이도 13개월까지 걷지 않았어요. 기어다니는 것만 열심히 하더니 갑자기 어느 날 일어나서 걷기 시작했답니다. 아이마다 발달 속도가 다르니 너무 걱정하지 마세요. 15개월까지는 정상 범위라고 알고 있어요.',
       author: {
-        name: "경험자맘",
-        image: "/abstract-profile.png",
-        level: "슈퍼 부모",
+        name: '경험자맘',
+        image: '/abstract-profile.png',
+        level: '슈퍼 부모',
         posts: 87,
       },
-      created: "2023년 5월 14일",
+      created: '2023년 5월 14일',
       likes: 23,
       isExpert: false,
       isBestAnswer: true,
@@ -46,14 +55,14 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
     {
       id: 2,
       content:
-        "아이들마다 발달 속도는 정말 다양해요. 제 첫째는 10개월에 걸었는데, 둘째는 14개월이 되어서야 걸었어요. 지금은 둘 다 건강하게 잘 뛰어다니고 있답니다. 기어다니는 것을 잘한다면 대근육 발달에는 문제가 없는 것 같으니 조금만 더 기다려보세요.",
+        '아이들마다 발달 속도는 정말 다양해요. 제 첫째는 10개월에 걸었는데, 둘째는 14개월이 되어서야 걸었어요. 지금은 둘 다 건강하게 잘 뛰어다니고 있답니다. 기어다니는 것을 잘한다면 대근육 발달에는 문제가 없는 것 같으니 조금만 더 기다려보세요.',
       author: {
-        name: "두아이맘",
-        image: "/abstract-profile.png",
-        level: "열심 부모",
+        name: '두아이맘',
+        image: '/abstract-profile.png',
+        level: '열심 부모',
         posts: 42,
       },
-      created: "2023년 5월 14일",
+      created: '2023년 5월 14일',
       likes: 15,
       isExpert: false,
       isBestAnswer: false,
@@ -61,19 +70,19 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
     {
       id: 3,
       content:
-        "소아과 의사입니다. 일반적으로 아이들은 9-15개월 사이에 걷기 시작하는데, 이 범위 내에서는 모두 정상 발달로 봅니다. 12개월에 걷지 못한다고 해서 발달 지연이라고 볼 수는 없어요. 중요한 것은 다른 발달 지표들도 함께 살펴보는 것입니다. 기어다니기, 잡고 서기 등을 잘 한다면 큰 걱정은 하지 않으셔도 됩니다. 18개월까지 걷지 못한다면 소아과 의사와 상담해보시는 것이 좋겠습니다.",
+        '소아과 의사입니다. 일반적으로 아이들은 9-15개월 사이에 걷기 시작하는데, 이 범위 내에서는 모두 정상 발달로 봅니다. 12개월에 걷지 못한다고 해서 발달 지연이라고 볼 수는 없어요. 중요한 것은 다른 발달 지표들도 함께 살펴보는 것입니다. 기어다니기, 잡고 서기 등을 잘 한다면 큰 걱정은 하지 않으셔도 됩니다. 18개월까지 걷지 못한다면 소아과 의사와 상담해보시는 것이 좋겠습니다.',
       author: {
-        name: "김소아과의사",
-        image: "/caring-doctor.png",
-        level: "전문가",
+        name: '김소아과의사',
+        image: '/caring-doctor.png',
+        level: '전문가',
         posts: 156,
       },
-      created: "2023년 5월 15일",
+      created: '2023년 5월 15일',
       likes: 42,
       isExpert: true,
       isBestAnswer: false,
     },
-  ]
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -162,8 +171,13 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div className="flex items-start space-x-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={question.author.image || "/placeholder.svg"} alt={question.author.name} />
-              <AvatarFallback>{question.author.name.slice(0, 2)}</AvatarFallback>
+              <AvatarImage
+                src={question.author.image || '/placeholder.svg'}
+                alt={question.author.name}
+              />
+              <AvatarFallback>
+                {question.author.name.slice(0, 2)}
+              </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center gap-2">
@@ -172,14 +186,16 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
                   {question.author.level}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">작성일: {question.created}</p>
+              <p className="text-xs text-muted-foreground">
+                작성일: {question.created}
+              </p>
             </div>
           </div>
           <Badge>{question.category}</Badge>
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            {question.content.split("\n\n").map((paragraph, index) => (
+            {question.content.split('\n\n').map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
           </div>
@@ -254,28 +270,44 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
         <h2 className="text-xl font-bold mb-4">답변 {answers.length}개</h2>
         <div className="space-y-4">
           {answers.map((answer) => (
-            <Card key={answer.id} className={answer.isBestAnswer ? "border-primary" : ""}>
+            <Card
+              key={answer.id}
+              className={answer.isBestAnswer ? 'border-primary' : ''}
+            >
               {answer.isBestAnswer && (
-                <div className="bg-primary text-primary-foreground px-4 py-1 text-sm font-medium">베스트 답변</div>
+                <div className="bg-primary text-primary-foreground px-4 py-1 text-sm font-medium">
+                  베스트 답변
+                </div>
               )}
               <CardHeader className="flex flex-row items-start justify-between space-y-0">
                 <div className="flex items-start space-x-4">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={answer.author.image || "/placeholder.svg"} alt={answer.author.name} />
-                    <AvatarFallback>{answer.author.name.slice(0, 2)}</AvatarFallback>
+                    <AvatarImage
+                      src={answer.author.image || '/placeholder.svg'}
+                      alt={answer.author.name}
+                    />
+                    <AvatarFallback>
+                      {answer.author.name.slice(0, 2)}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{answer.author.name}</p>
+                      <p className="text-sm font-medium">
+                        {answer.author.name}
+                      </p>
                       {answer.isExpert ? (
-                        <Badge className="bg-blue-500 hover:bg-blue-600">{answer.author.level}</Badge>
+                        <Badge className="bg-blue-500 hover:bg-blue-600">
+                          {answer.author.level}
+                        </Badge>
                       ) : (
                         <Badge variant="outline" className="text-xs">
                           {answer.author.level}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">작성일: {answer.created}</p>
+                    <p className="text-xs text-muted-foreground">
+                      작성일: {answer.created}
+                    </p>
                   </div>
                 </div>
               </CardHeader>
@@ -285,7 +317,11 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -325,7 +361,7 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
           </CardContent>
           <CardFooter className="flex justify-between border-t px-6 py-3">
             <p className="text-xs text-muted-foreground">
-              답변 작성 시{" "}
+              답변 작성 시{' '}
               <Link href="/terms" className="text-primary hover:underline">
                 커뮤니티 이용규칙
               </Link>
@@ -346,5 +382,5 @@ export default function QuestionDetailPage({ params }: { params: { id: string } 
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,13 +1,20 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TermsOfService } from "@/components/terms-of-service"
-import { PrivacyPolicy } from "@/components/privacy-policy"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TermsOfService } from '@/components/terms-of-service';
+import { PrivacyPolicy } from '@/components/privacy-policy';
 
 export default function SignupPage() {
   return (
@@ -16,7 +23,9 @@ export default function SignupPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">회원가입</CardTitle>
-            <CardDescription>마파덜에 오신 것을 환영합니다. 계정을 만들어 시작하세요.</CardDescription>
+            <CardDescription>
+              마파덜에 오신 것을 환영합니다. 계정을 만들어 시작하세요.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="email" className="w-full">
@@ -28,7 +37,12 @@ export default function SignupPage() {
                 <form className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">이메일</Label>
-                    <Input id="email" type="email" placeholder="name@example.com" required />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">비밀번호</Label>
@@ -72,11 +86,15 @@ export default function SignupPage() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-sm text-muted-foreground text-center">
-              회원가입을 진행하면 마파덜의 <TermsOfService /> 과 <PrivacyPolicy /> 에 동의하게 됩니다.
+              회원가입을 진행하면 마파덜의 <TermsOfService /> 과{' '}
+              <PrivacyPolicy /> 에 동의하게 됩니다.
             </div>
             <div className="text-sm text-center">
-              이미 계정이 있으신가요?{" "}
-              <Link href="/login" className="underline underline-offset-4 hover:text-primary">
+              이미 계정이 있으신가요?{' '}
+              <Link
+                href="/login"
+                className="underline underline-offset-4 hover:text-primary"
+              >
                 로그인
               </Link>
             </div>
@@ -84,5 +102,5 @@ export default function SignupPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

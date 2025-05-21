@@ -8,9 +8,9 @@
 - 모든 API 응답은 다음 형식을 따릅니다:
   \`\`\`json
   {
-    "success": true/false,
-    "data": { ... } 또는 [ ... ],
-    "error": { "code": "ERROR_CODE", "message": "오류 메시지" } (오류 발생 시)
+  "success": true/false,
+  "data": { ... } 또는 [ ... ],
+  "error": { "code": "ERROR_CODE", "message": "오류 메시지" } (오류 발생 시)
   }
   \`\`\`
 
@@ -24,23 +24,23 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "email": "user@example.com",
-    "password": "password123"
+  "email": "user@example.com",
+  "password": "password123"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "token": "JWT_TOKEN",
-      "user": {
-        "id": "user_id",
-        "email": "user@example.com",
-        "name": "사용자 이름",
-        "profileImage": "프로필 이미지 URL"
-      }
-    }
+  "success": true,
+  "data": {
+  "token": "JWT_TOKEN",
+  "user": {
+  "id": "user_id",
+  "email": "user@example.com",
+  "name": "사용자 이름",
+  "profileImage": "프로필 이미지 URL"
+  }
+  }
   }
   \`\`\`
 
@@ -52,24 +52,24 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "email": "user@example.com",
-    "password": "password123",
-    "name": "사용자 이름",
-    "agreeToTerms": true
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "사용자 이름",
+  "agreeToTerms": true
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "token": "JWT_TOKEN",
-      "user": {
-        "id": "user_id",
-        "email": "user@example.com",
-        "name": "사용자 이름"
-      }
-    }
+  "success": true,
+  "data": {
+  "token": "JWT_TOKEN",
+  "user": {
+  "id": "user_id",
+  "email": "user@example.com",
+  "name": "사용자 이름"
+  }
+  }
   }
   \`\`\`
 
@@ -81,10 +81,10 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "message": "로그아웃 되었습니다."
-    }
+  "success": true,
+  "data": {
+  "message": "로그아웃 되었습니다."
+  }
   }
   \`\`\`
 
@@ -112,14 +112,14 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "user_id",
-      "email": "user@example.com",
-      "name": "사용자 이름",
-      "profileImage": "프로필 이미지 URL",
-      "createdAt": "2023-01-01T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "user_id",
+  "email": "user@example.com",
+  "name": "사용자 이름",
+  "profileImage": "프로필 이미지 URL",
+  "createdAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -131,21 +131,21 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "name": "새 이름",
-    "profileImage": "새 프로필 이미지 URL"
+  "name": "새 이름",
+  "profileImage": "새 프로필 이미지 URL"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "user_id",
-      "email": "user@example.com",
-      "name": "새 이름",
-      "profileImage": "새 프로필 이미지 URL",
-      "updatedAt": "2023-01-01T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "user_id",
+  "email": "user@example.com",
+  "name": "새 이름",
+  "profileImage": "새 프로필 이미지 URL",
+  "updatedAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -157,12 +157,12 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "user_id",
-      "name": "사용자 이름",
-      "profileImage": "프로필 이미지 URL"
-    }
+  "success": true,
+  "data": {
+  "id": "user_id",
+  "name": "사용자 이름",
+  "profileImage": "프로필 이미지 URL"
+  }
   }
   \`\`\`
 
@@ -182,29 +182,29 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "records": [
-        {
-          "id": "record_id",
-          "date": "2023-01-01",
-          "ageGroup": "0-12개월",
-          "developmentArea": "신체",
-          "title": "첫 걸음마",
-          "description": "오늘 아이가 처음으로 혼자 걸었어요!",
-          "images": ["이미지URL1", "이미지URL2"],
-          "recordType": "발달 기록",
-          "createdAt": "2023-01-01T00:00:00Z"
-        },
-        // ... 추가 기록
-      ],
-      "pagination": {
-        "total": 25,
-        "page": 1,
-        "limit": 10,
-        "pages": 3
-      }
-    }
+  "success": true,
+  "data": {
+  "records": [
+  {
+  "id": "record_id",
+  "date": "2023-01-01",
+  "ageGroup": "0-12개월",
+  "developmentArea": "신체",
+  "title": "첫 걸음마",
+  "description": "오늘 아이가 처음으로 혼자 걸었어요!",
+  "images": ["이미지URL1", "이미지URL2"],
+  "recordType": "발달 기록",
+  "createdAt": "2023-01-01T00:00:00Z"
+  },
+  // ... 추가 기록
+  ],
+  "pagination": {
+  "total": 25,
+  "page": 1,
+  "limit": 10,
+  "pages": 3
+  }
+  }
   }
   \`\`\`
 
@@ -216,19 +216,19 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "record_id",
-      "date": "2023-01-01",
-      "ageGroup": "0-12개월",
-      "developmentArea": "신체",
-      "title": "첫 걸음마",
-      "description": "오늘 아이가 처음으로 혼자 걸었어요!",
-      "images": ["이미지URL1", "이미지URL2"],
-      "recordType": "발달 기록",
-      "createdAt": "2023-01-01T00:00:00Z",
-      "updatedAt": "2023-01-01T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "record_id",
+  "date": "2023-01-01",
+  "ageGroup": "0-12개월",
+  "developmentArea": "신체",
+  "title": "첫 걸음마",
+  "description": "오늘 아이가 처음으로 혼자 걸었어요!",
+  "images": ["이미지URL1", "이미지URL2"],
+  "recordType": "발달 기록",
+  "createdAt": "2023-01-01T00:00:00Z",
+  "updatedAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -240,30 +240,30 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "date": "2023-01-01",
-    "ageGroup": "0-12개월",
-    "developmentArea": "신체",
-    "title": "첫 걸음마",
-    "description": "오늘 아이가 처음으로 혼자 걸었어요!",
-    "images": ["이미지URL1", "이미지URL2"],
-    "recordType": "발달 기록"
+  "date": "2023-01-01",
+  "ageGroup": "0-12개월",
+  "developmentArea": "신체",
+  "title": "첫 걸음마",
+  "description": "오늘 아이가 처음으로 혼자 걸었어요!",
+  "images": ["이미지URL1", "이미지URL2"],
+  "recordType": "발달 기록"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "record_id",
-      "date": "2023-01-01",
-      "ageGroup": "0-12개월",
-      "developmentArea": "신체",
-      "title": "첫 걸음마",
-      "description": "오늘 아이가 처음으로 혼자 걸었어요!",
-      "images": ["이미지URL1", "이미지URL2"],
-      "recordType": "발달 기록",
-      "createdAt": "2023-01-01T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "record_id",
+  "date": "2023-01-01",
+  "ageGroup": "0-12개월",
+  "developmentArea": "신체",
+  "title": "첫 걸음마",
+  "description": "오늘 아이가 처음으로 혼자 걸었어요!",
+  "images": ["이미지URL1", "이미지URL2"],
+  "recordType": "발달 기록",
+  "createdAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -275,30 +275,30 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "date": "2023-01-01",
-    "ageGroup": "0-12개월",
-    "developmentArea": "신체",
-    "title": "첫 걸음마 (수정됨)",
-    "description": "오늘 아이가 처음으로 혼자 걸었어요! 추가 내용...",
-    "images": ["이미지URL1", "이미지URL2", "새이미지URL3"],
-    "recordType": "발달 기록"
+  "date": "2023-01-01",
+  "ageGroup": "0-12개월",
+  "developmentArea": "신체",
+  "title": "첫 걸음마 (수정됨)",
+  "description": "오늘 아이가 처음으로 혼자 걸었어요! 추가 내용...",
+  "images": ["이미지URL1", "이미지URL2", "새이미지URL3"],
+  "recordType": "발달 기록"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "record_id",
-      "date": "2023-01-01",
-      "ageGroup": "0-12개월",
-      "developmentArea": "신체",
-      "title": "첫 걸음마 (수정됨)",
-      "description": "오늘 아이가 처음으로 혼자 걸었어요! 추가 내용...",
-      "images": ["이미지URL1", "이미지URL2", "새이미지URL3"],
-      "recordType": "발달 기록",
-      "updatedAt": "2023-01-02T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "record_id",
+  "date": "2023-01-01",
+  "ageGroup": "0-12개월",
+  "developmentArea": "신체",
+  "title": "첫 걸음마 (수정됨)",
+  "description": "오늘 아이가 처음으로 혼자 걸었어요! 추가 내용...",
+  "images": ["이미지URL1", "이미지URL2", "새이미지URL3"],
+  "recordType": "발달 기록",
+  "updatedAt": "2023-01-02T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -310,10 +310,10 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "message": "발달 기록이 삭제되었습니다."
-    }
+  "success": true,
+  "data": {
+  "message": "발달 기록이 삭제되었습니다."
+  }
   }
   \`\`\`
 
@@ -327,26 +327,26 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "totalRecords": 25,
-      "byDevelopmentArea": {
-        "신체": 8,
-        "인지": 6,
-        "언어": 7,
-        "사회성": 4
-      },
-      "byRecordType": {
-        "발달 기록": 15,
-        "발달 이정표": 5,
-        "특별한 날": 3,
-        "건강 기록": 2
-      },
-      "recentActivity": {
-        "lastRecordDate": "2023-01-15",
-        "recordsThisMonth": 5
-      }
-    }
+  "success": true,
+  "data": {
+  "totalRecords": 25,
+  "byDevelopmentArea": {
+  "신체": 8,
+  "인지": 6,
+  "언어": 7,
+  "사회성": 4
+  },
+  "byRecordType": {
+  "발달 기록": 15,
+  "발달 이정표": 5,
+  "특별한 날": 3,
+  "건강 기록": 2
+  },
+  "recentActivity": {
+  "lastRecordDate": "2023-01-15",
+  "recordsThisMonth": 5
+  }
+  }
   }
   \`\`\`
 
@@ -362,39 +362,39 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "timeline": [
-        {
-          "date": "2023-01-15",
-          "events": [
-            {
-              "id": "record_id1",
-              "title": "첫 걸음마",
-              "developmentArea": "신체",
-              "recordType": "발달 이정표"
-            }
-          ]
-        },
-        {
-          "date": "2023-01-10",
-          "events": [
-            {
-              "id": "record_id2",
-              "title": "첫 단어",
-              "developmentArea": "언어",
-              "recordType": "발달 이정표"
-            },
-            {
-              "id": "record_id3",
-              "title": "병원 검진",
-              "recordType": "건강 기록"
-            }
-          ]
-        }
-        // ... 추가 날짜
-      ]
-    }
+  "success": true,
+  "data": {
+  "timeline": [
+  {
+  "date": "2023-01-15",
+  "events": [
+  {
+  "id": "record_id1",
+  "title": "첫 걸음마",
+  "developmentArea": "신체",
+  "recordType": "발달 이정표"
+  }
+  ]
+  },
+  {
+  "date": "2023-01-10",
+  "events": [
+  {
+  "id": "record_id2",
+  "title": "첫 단어",
+  "developmentArea": "언어",
+  "recordType": "발달 이정표"
+  },
+  {
+  "id": "record_id3",
+  "title": "병원 검진",
+  "recordType": "건강 기록"
+  }
+  ]
+  }
+  // ... 추가 날짜
+  ]
+  }
   }
   \`\`\`
 
@@ -413,31 +413,31 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "questions": [
-        {
-          "id": "question_id",
-          "title": "아이가 밤에 자주 깨요",
-          "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
-          "category": "수면",
-          "author": {
-            "id": "user_id",
-            "name": "사용자 이름",
-            "profileImage": "프로필 이미지 URL"
-          },
-          "commentsCount": 5,
-          "createdAt": "2023-01-01T00:00:00Z"
-        },
-        // ... 추가 질문
-      ],
-      "pagination": {
-        "total": 25,
-        "page": 1,
-        "limit": 10,
-        "pages": 3
-      }
-    }
+  "success": true,
+  "data": {
+  "questions": [
+  {
+  "id": "question_id",
+  "title": "아이가 밤에 자주 깨요",
+  "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
+  "category": "수면",
+  "author": {
+  "id": "user_id",
+  "name": "사용자 이름",
+  "profileImage": "프로필 이미지 URL"
+  },
+  "commentsCount": 5,
+  "createdAt": "2023-01-01T00:00:00Z"
+  },
+  // ... 추가 질문
+  ],
+  "pagination": {
+  "total": 25,
+  "page": 1,
+  "limit": 10,
+  "pages": 3
+  }
+  }
   }
   \`\`\`
 
@@ -449,33 +449,33 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "question_id",
-      "title": "아이가 밤에 자주 깨요",
-      "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
-      "category": "수면",
-      "author": {
-        "id": "user_id",
-        "name": "사용자 이름",
-        "profileImage": "프로필 이미지 URL"
-      },
-      "comments": [
-        {
-          "id": "comment_id",
-          "content": "우리 아이도 그랬어요. 이렇게 해보세요...",
-          "author": {
-            "id": "user_id2",
-            "name": "다른 사용자",
-            "profileImage": "프로필 이미지 URL"
-          },
-          "createdAt": "2023-01-01T12:00:00Z"
-        }
-        // ... 추가 댓글
-      ],
-      "createdAt": "2023-01-01T00:00:00Z",
-      "updatedAt": "2023-01-01T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "question_id",
+  "title": "아이가 밤에 자주 깨요",
+  "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
+  "category": "수면",
+  "author": {
+  "id": "user_id",
+  "name": "사용자 이름",
+  "profileImage": "프로필 이미지 URL"
+  },
+  "comments": [
+  {
+  "id": "comment_id",
+  "content": "우리 아이도 그랬어요. 이렇게 해보세요...",
+  "author": {
+  "id": "user_id2",
+  "name": "다른 사용자",
+  "profileImage": "프로필 이미지 URL"
+  },
+  "createdAt": "2023-01-01T12:00:00Z"
+  }
+  // ... 추가 댓글
+  ],
+  "createdAt": "2023-01-01T00:00:00Z",
+  "updatedAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -487,26 +487,26 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "title": "아이가 밤에 자주 깨요",
-    "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
-    "category": "수면"
+  "title": "아이가 밤에 자주 깨요",
+  "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
+  "category": "수면"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "question_id",
-      "title": "아이가 밤에 자주 깨요",
-      "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
-      "category": "수면",
-      "author": {
-        "id": "user_id",
-        "name": "사용자 이름"
-      },
-      "createdAt": "2023-01-01T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "question_id",
+  "title": "아이가 밤에 자주 깨요",
+  "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
+  "category": "수면",
+  "author": {
+  "id": "user_id",
+  "name": "사용자 이름"
+  },
+  "createdAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -518,22 +518,22 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "title": "아이가 밤에 자주 깨요 (수정)",
-    "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요? 추가 내용...",
-    "category": "수면"
+  "title": "아이가 밤에 자주 깨요 (수정)",
+  "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요? 추가 내용...",
+  "category": "수면"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "question_id",
-      "title": "아이가 밤에 자주 깨요 (수정)",
-      "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요? 추가 내용...",
-      "category": "수면",
-      "updatedAt": "2023-01-02T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "question_id",
+  "title": "아이가 밤에 자주 깨요 (수정)",
+  "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요? 추가 내용...",
+  "category": "수면",
+  "updatedAt": "2023-01-02T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -545,10 +545,10 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "message": "질문이 삭제되었습니다."
-    }
+  "success": true,
+  "data": {
+  "message": "질문이 삭제되었습니다."
+  }
   }
   \`\`\`
 
@@ -560,26 +560,26 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "postId": "question_id",
-    "postType": "question", // "question", "story", "tip" 중 하나
-    "content": "우리 아이도 그랬어요. 이렇게 해보세요..."
+  "postId": "question_id",
+  "postType": "question", // "question", "story", "tip" 중 하나
+  "content": "우리 아이도 그랬어요. 이렇게 해보세요..."
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "comment_id",
-      "postId": "question_id",
-      "postType": "question",
-      "content": "우리 아이도 그랬어요. 이렇게 해보세요...",
-      "author": {
-        "id": "user_id",
-        "name": "사용자 이름"
-      },
-      "createdAt": "2023-01-01T12:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "comment_id",
+  "postId": "question_id",
+  "postType": "question",
+  "content": "우리 아이도 그랬어요. 이렇게 해보세요...",
+  "author": {
+  "id": "user_id",
+  "name": "사용자 이름"
+  },
+  "createdAt": "2023-01-01T12:00:00Z"
+  }
   }
   \`\`\`
 
@@ -591,18 +591,18 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "content": "우리 아이도 그랬어요. 이렇게 해보세요... (수정됨)"
+  "content": "우리 아이도 그랬어요. 이렇게 해보세요... (수정됨)"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "comment_id",
-      "content": "우리 아이도 그랬어요. 이렇게 해보세요... (수정됨)",
-      "updatedAt": "2023-01-02T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "comment_id",
+  "content": "우리 아이도 그랬어요. 이렇게 해보세요... (수정됨)",
+  "updatedAt": "2023-01-02T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -614,10 +614,10 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "message": "댓글이 삭제되었습니다."
-    }
+  "success": true,
+  "data": {
+  "message": "댓글이 삭제되었습니다."
+  }
   }
   \`\`\`
 
@@ -629,24 +629,24 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "totalQuestions": 120,
-      "totalStories": 85,
-      "totalTips": 65,
-      "totalComments": 450,
-      "popularCategories": [
-        { "name": "수면", "count": 35 },
-        { "name": "식사", "count": 28 },
-        { "name": "발달", "count": 22 }
-      ],
-      "recentActivity": {
-        "questions": 12,
-        "stories": 8,
-        "tips": 5,
-        "comments": 45
-      }
-    }
+  "success": true,
+  "data": {
+  "totalQuestions": 120,
+  "totalStories": 85,
+  "totalTips": 65,
+  "totalComments": 450,
+  "popularCategories": [
+  { "name": "수면", "count": 35 },
+  { "name": "식사", "count": 28 },
+  { "name": "발달", "count": 22 }
+  ],
+  "recentActivity": {
+  "questions": 12,
+  "stories": 8,
+  "tips": 5,
+  "comments": 45
+  }
+  }
   }
   \`\`\`
 
@@ -660,17 +660,17 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "message": "8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?",
-    "category": "sleep"
+  "message": "8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?",
+  "category": "sleep"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "response": "8개월 아기의 밤중 각성은 흔한 현상입니다. 이 시기에는 분리 불안이 시작되고, 발달 도약기를 겪으면서 수면 패턴이 방해받을 수 있습니다. 일관된 취침 루틴을 만들고, 아기가 스스로 다시 잠들 수 있는 능력을 기르도록 도와주세요. 밤중 수유가 습관이 되었다면 점진적으로 줄여나가는 것도 도움이 됩니다."
-    }
+  "success": true,
+  "data": {
+  "response": "8개월 아기의 밤중 각성은 흔한 현상입니다. 이 시기에는 분리 불안이 시작되고, 발달 도약기를 겪으면서 수면 패턴이 방해받을 수 있습니다. 일관된 취침 루틴을 만들고, 아기가 스스로 다시 잠들 수 있는 능력을 기르도록 도와주세요. 밤중 수유가 습관이 되었다면 점진적으로 줄여나가는 것도 도움이 됩니다."
+  }
   }
   \`\`\`
 
@@ -686,25 +686,25 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "histories": [
-        {
-          "id": "history_id",
-          "title": "아이 수면 문제에 관한 상담",
-          "category": "sleep",
-          "createdAt": "2023-01-01T00:00:00Z",
-          "updatedAt": "2023-01-01T00:00:00Z"
-        },
-        // ... 추가 히스토리
-      ],
-      "pagination": {
-        "total": 15,
-        "page": 1,
-        "limit": 10,
-        "pages": 2
-      }
-    }
+  "success": true,
+  "data": {
+  "histories": [
+  {
+  "id": "history_id",
+  "title": "아이 수면 문제에 관한 상담",
+  "category": "sleep",
+  "createdAt": "2023-01-01T00:00:00Z",
+  "updatedAt": "2023-01-01T00:00:00Z"
+  },
+  // ... 추가 히스토리
+  ],
+  "pagination": {
+  "total": 15,
+  "page": 1,
+  "limit": 10,
+  "pages": 2
+  }
+  }
   }
   \`\`\`
 
@@ -716,36 +716,36 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "history_id",
-      "title": "아이 수면 문제에 관한 상담",
-      "category": "sleep",
-      "messages": [
-        {
-          "role": "user",
-          "content": "8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?",
-          "createdAt": "2023-01-01T00:00:00Z"
-        },
-        {
-          "role": "assistant",
-          "content": "8개월 아기의 밤중 각성은 흔한 현상입니다. 이 시기에는 분리 불안이 시작되고, 발달 도약기를 겪으면서 수면 패턴이 방해받을 수 있습니다. 일관된 취침 루틴을 만들고, 아기가 스스로 다시 잠들 수 있는 능력을 기르도록 도와주세요. 밤중 수유가 습관이 되었다면 점진적으로 줄여나가는 것도 도움이 됩니다.",
-          "createdAt": "2023-01-01T00:00:10Z"
-        },
-        {
-          "role": "user",
-          "content": "취침 루틴을 어떻게 만들어야 할까요?",
-          "createdAt": "2023-01-01T00:01:00Z"
-        },
-        {
-          "role": "assistant",
-          "content": "효과적인 취침 루틴은 매일 같은 시간에 비슷한 활동을 반복하는 것입니다. 예를 들어, 목욕 → 마사지 → 편안한 옷 입히기 → 조용한 방에서 책 읽기 → 자장가 → 잠자리에 눕히기 순서로 진행할 수 있습니다. 루틴은 20-30분 정도로 유지하고, 취침 시간 30분 전부터는 밝은 빛과 활발한 놀이를 피하세요. 일관성이 가장 중요합니다.",
-          "createdAt": "2023-01-01T00:01:10Z"
-        }
-      ],
-      "createdAt": "2023-01-01T00:00:00Z",
-      "updatedAt": "2023-01-01T00:01:10Z"
-    }
+  "success": true,
+  "data": {
+  "id": "history_id",
+  "title": "아이 수면 문제에 관한 상담",
+  "category": "sleep",
+  "messages": [
+  {
+  "role": "user",
+  "content": "8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?",
+  "createdAt": "2023-01-01T00:00:00Z"
+  },
+  {
+  "role": "assistant",
+  "content": "8개월 아기의 밤중 각성은 흔한 현상입니다. 이 시기에는 분리 불안이 시작되고, 발달 도약기를 겪으면서 수면 패턴이 방해받을 수 있습니다. 일관된 취침 루틴을 만들고, 아기가 스스로 다시 잠들 수 있는 능력을 기르도록 도와주세요. 밤중 수유가 습관이 되었다면 점진적으로 줄여나가는 것도 도움이 됩니다.",
+  "createdAt": "2023-01-01T00:00:10Z"
+  },
+  {
+  "role": "user",
+  "content": "취침 루틴을 어떻게 만들어야 할까요?",
+  "createdAt": "2023-01-01T00:01:00Z"
+  },
+  {
+  "role": "assistant",
+  "content": "효과적인 취침 루틴은 매일 같은 시간에 비슷한 활동을 반복하는 것입니다. 예를 들어, 목욕 → 마사지 → 편안한 옷 입히기 → 조용한 방에서 책 읽기 → 자장가 → 잠자리에 눕히기 순서로 진행할 수 있습니다. 루틴은 20-30분 정도로 유지하고, 취침 시간 30분 전부터는 밝은 빛과 활발한 놀이를 피하세요. 일관성이 가장 중요합니다.",
+  "createdAt": "2023-01-01T00:01:10Z"
+  }
+  ],
+  "createdAt": "2023-01-01T00:00:00Z",
+  "updatedAt": "2023-01-01T00:01:10Z"
+  }
   }
   \`\`\`
 
@@ -757,31 +757,31 @@
 - **요청 본문**:
   \`\`\`json
   {
-    "messages": [
-      {
-        "role": "user",
-        "content": "8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?",
-        "createdAt": "2023-01-01T00:00:00Z"
-      },
-      {
-        "role": "assistant",
-        "content": "8개월 아기의 밤중 각성은 흔한 현상입니다...",
-        "createdAt": "2023-01-01T00:00:10Z"
-      }
-    ],
-    "category": "sleep"
+  "messages": [
+  {
+  "role": "user",
+  "content": "8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?",
+  "createdAt": "2023-01-01T00:00:00Z"
+  },
+  {
+  "role": "assistant",
+  "content": "8개월 아기의 밤중 각성은 흔한 현상입니다...",
+  "createdAt": "2023-01-01T00:00:10Z"
+  }
+  ],
+  "category": "sleep"
   }
   \`\`\`
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "history_id",
-      "title": "아이 수면 문제에 관한 상담",
-      "category": "sleep",
-      "createdAt": "2023-01-01T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "history_id",
+  "title": "아이 수면 문제에 관한 상담",
+  "category": "sleep",
+  "createdAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -793,10 +793,10 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "message": "상담 히스토리가 삭제되었습니다."
-    }
+  "success": true,
+  "data": {
+  "message": "상담 히스토리가 삭제되었습니다."
+  }
   }
   \`\`\`
 
@@ -808,20 +808,20 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "totalConsultations": 45,
-      "byCategory": {
-        "sleep": 15,
-        "nutrition": 12,
-        "development": 10,
-        "behavior": 8
-      },
-      "recentActivity": {
-        "lastConsultationDate": "2023-01-15",
-        "consultationsThisMonth": 8
-      }
-    }
+  "success": true,
+  "data": {
+  "totalConsultations": 45,
+  "byCategory": {
+  "sleep": 15,
+  "nutrition": 12,
+  "development": 10,
+  "behavior": 8
+  },
+  "recentActivity": {
+  "lastConsultationDate": "2023-01-15",
+  "consultationsThisMonth": 8
+  }
+  }
   }
   \`\`\`
 
@@ -836,13 +836,13 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "url": "https://storage.mapader.com/images/user_id/filename.jpg",
-      "filename": "filename.jpg",
-      "size": 1024000,
-      "mimeType": "image/jpeg"
-    }
+  "success": true,
+  "data": {
+  "url": "https://storage.mapader.com/images/user_id/filename.jpg",
+  "filename": "filename.jpg",
+  "size": 1024000,
+  "mimeType": "image/jpeg"
+  }
   }
   \`\`\`
 
@@ -861,46 +861,46 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "results": {
-        "development": [
-          {
-            "id": "record_id",
-            "type": "development_record",
-            "title": "첫 걸음마",
-            "description": "오늘 아이가 처음으로 혼자 걸었어요!",
-            "date": "2023-01-01"
-          }
-          // ... 추가 결과
-        ],
-        "community": [
-          {
-            "id": "question_id",
-            "type": "question",
-            "title": "아이가 밤에 자주 깨요",
-            "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
-            "date": "2023-01-01"
-          }
-          // ... 추가 결과
-        ],
-        "expert": [
-          {
-            "id": "history_id",
-            "type": "consultation",
-            "title": "아이 수면 문제에 관한 상담",
-            "date": "2023-01-01"
-          }
-          // ... 추가 결과
-        ]
-      },
-      "pagination": {
-        "total": 25,
-        "page": 1,
-        "limit": 10,
-        "pages": 3
-      }
-    }
+  "success": true,
+  "data": {
+  "results": {
+  "development": [
+  {
+  "id": "record_id",
+  "type": "development_record",
+  "title": "첫 걸음마",
+  "description": "오늘 아이가 처음으로 혼자 걸었어요!",
+  "date": "2023-01-01"
+  }
+  // ... 추가 결과
+  ],
+  "community": [
+  {
+  "id": "question_id",
+  "type": "question",
+  "title": "아이가 밤에 자주 깨요",
+  "content": "8개월 아기가 밤에 자주 깨는데 어떻게 해야 할까요?",
+  "date": "2023-01-01"
+  }
+  // ... 추가 결과
+  ],
+  "expert": [
+  {
+  "id": "history_id",
+  "type": "consultation",
+  "title": "아이 수면 문제에 관한 상담",
+  "date": "2023-01-01"
+  }
+  // ... 추가 결과
+  ]
+  },
+  "pagination": {
+  "total": 25,
+  "page": 1,
+  "limit": 10,
+  "pages": 3
+  }
+  }
   }
   \`\`\`
 
@@ -918,32 +918,32 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "notifications": [
-        {
-          "id": "notification_id",
-          "type": "comment",
-          "title": "새 댓글",
-          "message": "회원님의 질문에 새 댓글이 달렸습니다.",
-          "data": {
-            "postId": "question_id",
-            "postType": "question",
-            "commentId": "comment_id"
-          },
-          "read": false,
-          "createdAt": "2023-01-01T00:00:00Z"
-        },
-        // ... 추가 알림
-      ],
-      "pagination": {
-        "total": 25,
-        "page": 1,
-        "limit": 10,
-        "pages": 3
-      },
-      "unreadCount": 5
-    }
+  "success": true,
+  "data": {
+  "notifications": [
+  {
+  "id": "notification_id",
+  "type": "comment",
+  "title": "새 댓글",
+  "message": "회원님의 질문에 새 댓글이 달렸습니다.",
+  "data": {
+  "postId": "question_id",
+  "postType": "question",
+  "commentId": "comment_id"
+  },
+  "read": false,
+  "createdAt": "2023-01-01T00:00:00Z"
+  },
+  // ... 추가 알림
+  ],
+  "pagination": {
+  "total": 25,
+  "page": 1,
+  "limit": 10,
+  "pages": 3
+  },
+  "unreadCount": 5
+  }
   }
   \`\`\`
 
@@ -955,12 +955,12 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "id": "notification_id",
-      "read": true,
-      "updatedAt": "2023-01-02T00:00:00Z"
-    }
+  "success": true,
+  "data": {
+  "id": "notification_id",
+  "read": true,
+  "updatedAt": "2023-01-02T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -972,11 +972,11 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "message": "모든 알림이 읽음 처리되었습니다.",
-      "count": 5
-    }
+  "success": true,
+  "data": {
+  "message": "모든 알림이 읽음 처리되었습니다.",
+  "count": 5
+  }
   }
   \`\`\`
 
@@ -988,10 +988,10 @@
 - **응답**:
   \`\`\`json
   {
-    "success": true,
-    "data": {
-      "message": "알림이 삭제되었습니다."
-    }
+  "success": true,
+  "data": {
+  "message": "알림이 삭제되었습니다."
+  }
   }
   \`\`\`
 
@@ -1016,11 +1016,11 @@
 - **형식**:
   \`\`\`json
   {
-    "type": "message",
-    "data": {
-      "content": "메시지 내용",
-      "category": "sleep"
-    }
+  "type": "message",
+  "data": {
+  "content": "메시지 내용",
+  "category": "sleep"
+  }
   }
   \`\`\`
 
@@ -1029,10 +1029,10 @@
 - **형식**:
   \`\`\`json
   {
-    "type": "typing",
-    "data": {
-      "isTyping": true
-    }
+  "type": "typing",
+  "data": {
+  "isTyping": true
+  }
   }
   \`\`\`
 
@@ -1041,10 +1041,10 @@
 - **형식**:
   \`\`\`json
   {
-    "type": "read",
-    "data": {
-      "messageId": "message_id"
-    }
+  "type": "read",
+  "data": {
+  "messageId": "message_id"
+  }
   }
   \`\`\`
 
@@ -1053,13 +1053,13 @@
 - **형식**:
   \`\`\`json
   {
-    "type": "message",
-    "data": {
-      "id": "message_id",
-      "role": "assistant",
-      "content": "메시지 내용",
-      "createdAt": "2023-01-01T00:00:00Z"
-    }
+  "type": "message",
+  "data": {
+  "id": "message_id",
+  "role": "assistant",
+  "content": "메시지 내용",
+  "createdAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 
@@ -1068,19 +1068,19 @@
 - **형식**:
   \`\`\`json
   {
-    "type": "notification",
-    "data": {
-      "id": "notification_id",
-      "type": "comment",
-      "title": "새 댓글",
-      "message": "회원님의 질문에 새 댓글이 달렸습니다.",
-      "data": {
-        "postId": "question_id",
-        "postType": "question",
-        "commentId": "comment_id"
-      },
-      "createdAt": "2023-01-01T00:00:00Z"
-    }
+  "type": "notification",
+  "data": {
+  "id": "notification_id",
+  "type": "comment",
+  "title": "새 댓글",
+  "message": "회원님의 질문에 새 댓글이 달렸습니다.",
+  "data": {
+  "postId": "question_id",
+  "postType": "question",
+  "commentId": "comment_id"
+  },
+  "createdAt": "2023-01-01T00:00:00Z"
+  }
   }
   \`\`\`
 

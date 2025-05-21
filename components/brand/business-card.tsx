@@ -1,4 +1,4 @@
-import { Logo } from "../logo"
+import { Logo } from '../logo';
 
 export function BusinessCardPreview() {
   return (
@@ -11,7 +11,9 @@ export function BusinessCardPreview() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[80%]">
             <div className="flex flex-col items-center text-center">
               <Logo size="lg" />
-              <p className="text-sm text-muted-foreground mt-2">초보 엄마 아빠의 육아 부담을 덜어드립니다</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                초보 엄마 아빠의 육아 부담을 덜어드립니다
+              </p>
             </div>
           </div>
           <div className="absolute bottom-0 left-0 w-full h-1 bg-primary"></div>
@@ -24,7 +26,9 @@ export function BusinessCardPreview() {
           <div className="h-full flex flex-col justify-between">
             <div>
               <h4 className="font-bold text-lg">김마파</h4>
-              <p className="text-sm text-muted-foreground">육아 전문 컨설턴트</p>
+              <p className="text-sm text-muted-foreground">
+                육아 전문 컨설턴트
+              </p>
             </div>
 
             <div className="space-y-1 text-sm">
@@ -105,5 +109,5 @@ export function BusinessCardPreview() {
         <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
       </div>
     </div>
-  )
+  );
 }

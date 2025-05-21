@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ExpertChatWithCategories } from "@/components/expert-chat/expert-chat-with-categories"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { History } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ExpertChatWithCategories } from '@/components/expert-chat/expert-chat-with-categories';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { History } from 'lucide-react';
 
 export default function ExpertPage() {
   return (
@@ -12,7 +12,8 @@ export default function ExpertPage() {
           <div>
             <h1 className="text-3xl font-bold mb-2">전문가 조언</h1>
             <p className="text-muted-foreground">
-              초보 부모님들의 육아 부담을 덜어줄 AI 전문가 상담 서비스를 이용해보세요.
+              초보 부모님들의 육아 부담을 덜어줄 AI 전문가 상담 서비스를
+              이용해보세요.
             </p>
           </div>
           <Button variant="outline" asChild className="flex items-center gap-2">
@@ -53,7 +54,9 @@ export default function ExpertPage() {
                 </div>
                 <div>
                   <h3 className="font-medium">검증된 정보</h3>
-                  <p className="text-sm text-muted-foreground">최신 연구와 과학적 근거에 기반한 정보를 제공합니다.</p>
+                  <p className="text-sm text-muted-foreground">
+                    최신 연구와 과학적 근거에 기반한 정보를 제공합니다.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -74,7 +77,9 @@ export default function ExpertPage() {
                 </div>
                 <div>
                   <h3 className="font-medium">24시간 상담</h3>
-                  <p className="text-sm text-muted-foreground">언제든지 질문하고 즉시 답변을 받을 수 있습니다.</p>
+                  <p className="text-sm text-muted-foreground">
+                    언제든지 질문하고 즉시 답변을 받을 수 있습니다.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -97,7 +102,8 @@ export default function ExpertPage() {
                 <div>
                   <h3 className="font-medium">다양한 전문 분야</h3>
                   <p className="text-sm text-muted-foreground">
-                    발달, 수면, 영양, 행동, 심리, 교육 등 다양한 분야의 전문 지식을 제공합니다.
+                    발달, 수면, 영양, 행동, 심리, 교육 등 다양한 분야의 전문
+                    지식을 제공합니다.
                   </p>
                 </div>
               </div>
@@ -121,7 +127,8 @@ export default function ExpertPage() {
                 <div>
                   <h3 className="font-medium">상담 내용 저장</h3>
                   <p className="text-sm text-muted-foreground">
-                    상담 내용을 저장하고 나중에 다시 확인하거나 이어서 상담할 수 있습니다.
+                    상담 내용을 저장하고 나중에 다시 확인하거나 이어서 상담할 수
+                    있습니다.
                   </p>
                 </div>
               </div>
@@ -135,25 +142,36 @@ export default function ExpertPage() {
             <CardContent className="space-y-4">
               <div className="space-y-1">
                 <h3 className="text-sm font-medium">발달 분야</h3>
-                <p className="text-xs text-muted-foreground">"12개월 아기가 아직 걷지 못해요. 걱정해야 할까요?"</p>
                 <p className="text-xs text-muted-foreground">
-                  "아이가 또래보다 말이 늦는 것 같아요. 어떻게 도와줄 수 있을까요?"
+                  "12개월 아기가 아직 걷지 못해요. 걱정해야 할까요?"
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  "아이가 또래보다 말이 늦는 것 같아요. 어떻게 도와줄 수
+                  있을까요?"
                 </p>
               </div>
               <div className="space-y-1">
                 <h3 className="text-sm font-medium">수면 분야</h3>
-                <p className="text-xs text-muted-foreground">"8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?"</p>
-                <p className="text-xs text-muted-foreground">"2살 아이의 적정 수면 시간은 얼마인가요?"</p>
+                <p className="text-xs text-muted-foreground">
+                  "8개월 아기가 밤에 자주 깨요. 어떻게 해야 할까요?"
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  "2살 아이의 적정 수면 시간은 얼마인가요?"
+                </p>
               </div>
               <div className="space-y-1">
                 <h3 className="text-sm font-medium">영양 분야</h3>
-                <p className="text-xs text-muted-foreground">"이유식을 거부하는 아기, 어떻게 대처해야 할까요?"</p>
-                <p className="text-xs text-muted-foreground">"편식이 심한 아이, 영양 균형을 맞추는 방법이 있을까요?"</p>
+                <p className="text-xs text-muted-foreground">
+                  "이유식을 거부하는 아기, 어떻게 대처해야 할까요?"
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  "편식이 심한 아이, 영양 균형을 맞추는 방법이 있을까요?"
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }

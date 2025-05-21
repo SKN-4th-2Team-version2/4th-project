@@ -1,25 +1,25 @@
-"use client"
+'use client';
 
-import { useState, type FormEvent } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { SendIcon } from "lucide-react"
+import { useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { SendIcon } from 'lucide-react';
 
 interface ChatInputProps {
-  onSend: (message: string) => void
-  isLoading: boolean
+  onSend: (message: string) => void;
+  isLoading: boolean;
 }
 
 export function ChatInput({ onSend, isLoading }: ChatInputProps) {
-  const [input, setInput] = useState("")
+  const [input, setInput] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (input.trim() && !isLoading) {
-      onSend(input)
-      setInput("")
+      onSend(input);
+      setInput('');
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="border-t bg-background p-4">
@@ -30,17 +30,22 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
           onChange={(e) => setInput(e.target.value)}
           className="min-h-12 resize-none"
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault()
-              handleSubmit(e)
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
             }
           }}
         />
-        <Button type="submit" size="icon" disabled={!input.trim() || isLoading} className="h-12 w-12">
+        <Button
+          type="submit"
+          size="icon"
+          disabled={!input.trim() || isLoading}
+          className="h-12 w-12"
+        >
           <SendIcon className="h-5 w-5" />
           <span className="sr-only">전송</span>
         </Button>
       </div>
     </form>
-  )
+  );
 }
