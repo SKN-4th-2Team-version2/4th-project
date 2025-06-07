@@ -60,7 +60,7 @@ export default function DevelopmentPage() {
             </h2>
             <p className="text-lg mb-6">
               마파덜의 발달 모니터링 서비스로 아이의 성장 과정을 체계적으로
-              기록하고 추적하여 초보 부모님의 불안과 부담을 덜어드립니다.
+              ��록하고 추적하여 초보 부모님의 불안과 부담을 덜어드립니다.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button size="lg" asChild>

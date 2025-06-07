@@ -1,108 +1,21 @@
 import Link from 'next/link';
 import { Logo } from './logo';
-
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-      <div className="container py-12 md:py-16">
-        <div className="md:grid-cols-4 gap-8 py-8 border-t border-b border-slate-200 dark:border-slate-800 flex justify-around">
-          <div className="space-y-4 md:col-span-2 lg:col-span-1">
-            <Logo size="lg" />
-            <p className="text-sm text-muted-foreground max-w-md">
-              '초보 엄마 아빠의 부담을 덜어준다'는 의미의 마파덜은 부모님들에게
-              신뢰할 수 있는 육아 정보와 상호 지원 환경을 제공하는 플랫폼입니다.
-            </p>
-            <div className="flex space-x-4 mt-6">
-              <Link
-                href="#"
-                className="bg-white dark:bg-slate-800 p-2 rounded-full text-primary hover:text-primary/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-110 transition-all"
-                aria-label="Instagram"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                </svg>
-              </Link>
-              <Link
-                href="#"
-                className="bg-white dark:bg-slate-800 p-2 rounded-full text-primary hover:text-primary/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-110 transition-all"
-                aria-label="Facebook"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
-              </Link>
-              <Link
-                href="#"
-                className="bg-white dark:bg-slate-800 p-2 rounded-full text-primary hover:text-primary/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-110 transition-all"
-                aria-label="Twitter"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-                </svg>
-              </Link>
-              <Link
-                href="#"
-                className="bg-white dark:bg-slate-800 p-2 rounded-full text-primary hover:text-primary/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-110 transition-all"
-                aria-label="YouTube"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
-                  <path d="m10 15 5-3-5-3z" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <h4 className="font-medium text-primary dark:text-primary/90">
+    <footer className="py-16 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+      <div className="container mx-auto px-4">
+        {/* 상단 섹션 - Flexbox 사용 */}
+        <div className="flex flex-wrap justify-around mb-12">
+          {/* 첫 번째 열 - 서비스 */}
+          <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 mb-8 md:mb-0">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-6">
               서비스
-            </h4>
-            <ul className="space-y-2 text-sm">
+            </h3>
+            <ul className="space-y-4">
               <li>
                 <Link
                   href="/community"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
+                  className="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                 >
                   커뮤니티
                 </Link>
@@ -110,7 +23,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/expert"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
+                  className="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                 >
                   전문가 조언
                 </Link>
@@ -118,7 +31,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/development"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
+                  className="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                 >
                   발달 모니터링
                 </Link>
@@ -126,7 +39,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/resources"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
+                  className="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                 >
                   육아 자료실
                 </Link>
@@ -134,44 +47,65 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <h4 className="font-medium text-primary dark:text-primary/90">
-              법적 정보
-            </h4>
-            <ul className="space-y-2 text-sm">
+          {/* 두 번째 열 - 지원 */}
+          <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 mb-8 md:mb-0">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-6">
+              지원
+            </h3>
+            <ul className="space-y-4">
               <li>
                 <Link
-                  href="/terms"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
+                  href="/about"
+                  className="text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
                 >
-                  이용약관
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/privacy"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  개인정보처리방침
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/cookies"
-                  className="text-muted-foreground hover:text-primary dark:hover:text-primary/90 transition-colors"
-                >
-                  쿠키 정책
+                  마파덜 소개
                 </Link>
               </li>
             </ul>
           </div>
+
+          {/* 세 번째 열 - 설명 */}
+          <div className="w-full md:w-1/3 lg:w-1/3">
+            <div className="flex items-start">
+              <div className="flex-shrink-0 mr-3">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Logo />
+                </div>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
+                '초보 엄마 아빠의 부담을 덜어준다'는 의미의 마파덜은
+                부모님들에게 신뢰할 수 있는 육아 정보와 상호 지원 환경을
+                제공하는 플랫폼입니다.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* 하단 섹션 - 저작권 */}
-        <div className="pt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} 마파덜. All rights reserved.
-          </p>
+        {/* 하단 섹션 - Flexbox 사용 */}
+        <div className="border-t border-gray-100 dark:border-gray-800 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            {/* 법적 정보 링크 */}
+            <div className="flex items-center space-x-4 mb-4 md:mb-0">
+              <Link
+                href="/privacy"
+                className="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 text-sm"
+              >
+                개인정보처리방침
+              </Link>
+              <span className="text-gray-300 dark:text-gray-600">•</span>
+              <Link
+                href="/terms"
+                className="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 text-sm"
+              >
+                이용약관
+              </Link>
+            </div>
+
+            {/* 저작권 */}
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              © {new Date().getFullYear()} 마파덜. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { saveDevelopmentRecord } from '@/app/actions/development-record';
 import { toast } from '@/components/ui/use-toast';
-import { CalendarIcon, Loader2, HelpCircle, ImageIcon } from 'lucide-react';
+import { CalendarIcon, Loader2, ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -26,16 +26,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { TemplateSelector } from './template-selector';
-import type { DevelopmentTemplate } from '@/lib/development-templates';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { ImageUpload } from './image-upload';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface DevelopmentRecordFormProps {
@@ -53,53 +44,11 @@ export function DevelopmentRecordForm({
   const [developmentArea, setDevelopmentArea] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<DevelopmentTemplate | null>(null);
-  const [templateQuestions, setTemplateQuestions] = useState<string[]>([]);
-  const [templateAnswers, setTemplateAnswers] = useState<
-    Record<number, string>
-  >({});
   const [images, setImages] = useState<string[]>([]);
   const [recordType, setRecordType] = useState<string>('development');
 
-  useEffect(() => {
-    if (selectedTemplate) {
-      setTemplateQuestions(selectedTemplate.questions);
-      // 템플릿이 변경되면 답변 초기화
-      setTemplateAnswers({});
-    } else {
-      setTemplateQuestions([]);
-    }
-  }, [selectedTemplate]);
-
-  const handleTemplateSelect = (template: DevelopmentTemplate) => {
-    setSelectedTemplate(template);
-    setTitle(template.title);
-    setDescription(template.templateContent);
-  };
-
-  const handleTemplateAnswerChange = (index: number, value: string) => {
-    setTemplateAnswers((prev) => ({
-      ...prev,
-      [index]: value,
-    }));
-  };
-
   const handleImagesChange = (newImages: string[]) => {
     setImages(newImages);
-  };
-
-  const compileTemplateAnswers = () => {
-    if (templateQuestions.length === 0) return description;
-
-    let compiledContent = description + '\n\n';
-
-    templateQuestions.forEach((question, index) => {
-      const answer = templateAnswers[index] || '기록되지 않음';
-      compiledContent += `Q: ${question}\nA: ${answer}\n\n`;
-    });
-
-    return compiledContent;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,18 +76,13 @@ export function DevelopmentRecordForm({
     try {
       setIsSubmitting(true);
 
-      // 템플릿 질문과 답변을 포함한 내용 생성
-      const finalDescription = selectedTemplate
-        ? compileTemplateAnswers()
-        : description;
-
       await saveDevelopmentRecord({
         date: date.toISOString(),
         ageGroup,
         developmentArea:
           recordType === 'development' ? developmentArea : recordType,
         title,
-        description: finalDescription,
+        description,
         images: images.length > 0 ? images : undefined,
         recordType,
       });
@@ -151,9 +95,6 @@ export function DevelopmentRecordForm({
       // 폼 초기화
       setTitle('');
       setDescription('');
-      setSelectedTemplate(null);
-      setTemplateQuestions([]);
-      setTemplateAnswers({});
       setImages([]);
     } catch (error) {
       console.error('Failed to save development record:', error);
@@ -262,108 +203,35 @@ export function DevelopmentRecordForm({
             </div>
           )}
 
-          {recordType === 'development' && ageGroup && developmentArea && (
-            <TemplateSelector
-              ageGroup={ageGroup}
-              developmentArea={developmentArea}
-              onSelectTemplate={handleTemplateSelect}
-            />
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="title">제목</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="기록의 제목을 입력하세요"
+              placeholder="제목을 입력하세요"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">상세 내용</Label>
+            <Label htmlFor="description">내용</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={
-                recordType === 'development'
-                  ? '아이의 발달 상황을 자세히 기록해주세요'
-                  : '아이의 특별한 순간이나 중요한 기록을 남겨주세요'
-              }
-              rows={6}
+              placeholder="내용을 입력하세요"
+              className="min-h-[200px]"
             />
           </div>
 
-          {recordType === 'development' && templateQuestions.length > 0 && (
-            <div className="space-y-4 border rounded-md p-4 bg-accent/20">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-medium">템플릿 질문</h3>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <HelpCircle className="h-4 w-4" />
-                      <span className="sr-only">도움말</span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <p className="text-sm">
-                      아래 질문들에 답변하여 더 상세한 발달 기록을 작성할 수
-                      있습니다. 답변한 내용은 상세 내용과 함께 저장됩니다.
-                    </p>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <Accordion type="multiple" className="w-full">
-                {templateQuestions.map((question, index) => (
-                  <AccordionItem key={index} value={`question-${index}`}>
-                    <AccordionTrigger className="text-sm font-medium">
-                      {question}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <Textarea
-                        value={templateAnswers[index] || ''}
-                        onChange={(e) =>
-                          handleTemplateAnswerChange(index, e.target.value)
-                        }
-                        placeholder="이 질문에 대한 답변을 입력하세요"
-                        rows={3}
-                        className="mt-2"
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
-              <Label htmlFor="images" className="text-base">
-                사진 첨부
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <HelpCircle className="h-4 w-4" />
-                    <span className="sr-only">도움말</span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <p className="text-sm">
-                    아이의 발달 과정이나 특별한 순간을 사진으로 기록할 수
-                    있습니다. 최대 5장까지 첨부할 수 있으며, 각 사진은 5MB
-                    이하여야 합니다.
-                  </p>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <ImageUpload onImagesChange={handleImagesChange} maxImages={5} />
+          <div className="space-y-2">
+            <Label>사진</Label>
+            <ImageUpload
+              images={images}
+              onChange={handleImagesChange}
+              maxImages={5}
+            />
           </div>
-
-          <Separator className="my-6" />
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? (
@@ -372,7 +240,7 @@ export function DevelopmentRecordForm({
                 저장 중...
               </>
             ) : (
-              '기록 저장하기'
+              '저장하기'
             )}
           </Button>
         </form>

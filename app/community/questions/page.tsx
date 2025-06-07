@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,7 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from '@/hooks/use-toast';
+import CommunityService from '@/services/community-service';
+import type { Post, Category, PostsParams } from '@/types/community';
 import {
   Select,
   SelectContent,
@@ -17,372 +25,399 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { 
+  Search, 
+  Eye, 
+  MessageCircle, 
+  ThumbsUp, 
+  PenTool,
+  Filter,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 
 export default function QuestionsPage() {
-  // 질문 목록 데이터 (실제로는 API에서 가져올 것)
-  const questions = [
-    {
-      id: 1,
-      title: '12개월 아기가 아직 걷지 못해요. 걱정해야 할까요?',
-      content:
-        '우리 아기가 12개월인데 아직 걷지 못하고 있어요. 기어다니는 것은 잘하는데 일어서려고 하지 않아요. 또래 아이들은 대부분 걷기 시작했다고 하는데 걱정해야 할까요?',
-      author: {
-        name: '걱정많은엄마',
-        image: '/abstract-profile.png',
-      },
-      category: '발달',
-      tags: ['영아기', '운동발달', '걸음마'],
-      replies: 8,
-      views: 124,
-      likes: 15,
-      created: '2일 전',
-    },
-    {
-      id: 2,
-      title: '이유식 거부하는 10개월 아기, 어떻게 해야 할까요?',
-      content:
-        '10개월 된 아기가 갑자기 이유식을 거부하기 시작했어요. 전에는 잘 먹었는데 이제는 입을 꼭 다물고 고개를 돌려버려요. 어떻게 하면 다시 이유식을 먹게 할 수 있을까요?',
-      author: {
-        name: '초보맘',
-        image: '/abstract-profile.png',
-      },
-      category: '식이',
-      tags: ['영아기', '이유식', '식습관'],
-      replies: 12,
-      views: 187,
-      likes: 23,
-      created: '1일 전',
-    },
-    {
-      id: 3,
-      title: '아이가 유치원에서 친구를 때려요. 어떻게 대화해야 할까요?',
-      content:
-        '4살 아이가 유치원에서 친구를 자주 때린다는 선생님의 연락을 받았어요. 집에서는 그런 모습을 보이지 않아서 당황스럽네요. 아이와 어떻게 대화해야 할까요?',
-      author: {
-        name: '고민하는아빠',
-        image: '/abstract-profile.png',
-      },
-      category: '행동',
-      tags: ['유아기', '사회성', '문제행동'],
-      replies: 15,
-      views: 203,
-      likes: 31,
-      created: '3일 전',
-    },
-    {
-      id: 4,
-      title: '밤에 자주 깨는 2살 아이, 수면 훈련이 필요할까요?',
-      content:
-        '2살 아이가 밤에 2-3번씩 깨서 울어요. 다시 재우는 데 30분 이상 걸릴 때도 있고, 저희 부부가 너무 지쳐가고 있어요. 수면 훈련을 시도해볼지 고민 중인데 경험 있으신 분들 조언 부탁드려요.',
-      author: {
-        name: '잠못자는맘',
-        image: '/abstract-profile.png',
-      },
-      category: '수면',
-      tags: ['유아기', '수면문제', '수면훈련'],
-      replies: 20,
-      views: 245,
-      likes: 42,
-      created: '4일 전',
-    },
-    {
-      id: 5,
-      title: '5세 아이 언어발달 지연, 어떤 치료가 좋을까요?',
-      content:
-        '5세 아들이 또래보다 언어발달이 느린 것 같아요. 간단한 문장은 말하지만 복잡한 대화는 어려워하고 발음도 부정확해요. 언어치료를 고민 중인데, 어떤 방법이 효과적일까요?',
-      author: {
-        name: '언어발달맘',
-        image: '/abstract-profile.png',
-      },
-      category: '발달',
-      tags: ['학령전기', '언어발달', '치료'],
-      replies: 7,
-      views: 112,
-      likes: 18,
-      created: '5일 전',
-    },
-    {
-      id: 6,
-      title: '초등학교 입학 준비, 무엇부터 시작해야 할까요?',
-      content:
-        '내년에 아이가 초등학교에 입학해요. 학습적인 준비보다 생활 습관이나 사회성 등 어떤 부분을 미리 준비시켜야 할지 막막합니다. 선배 부모님들의 조언 부탁드려요.',
-      author: {
-        name: '예비초등맘',
-        image: '/abstract-profile.png',
-      },
-      category: '교육',
-      tags: ['학령기', '초등준비', '사회성'],
-      replies: 14,
-      views: 198,
-      likes: 37,
-      created: '6일 전',
-    },
-  ];
+  const { isAuthenticated } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [sortBy, setSortBy] = useState('recent');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const categories = [
-    { value: 'all', label: '전체' },
-    { value: 'development', label: '발달' },
-    { value: 'nutrition', label: '식이' },
-    { value: 'sleep', label: '수면' },
-    { value: 'behavior', label: '행동' },
-    { value: 'education', label: '교육' },
-    { value: 'health', label: '건강' },
-  ];
+  // 게시물 로드 함수
+  const loadPosts = useCallback(async (params: PostsParams = {}) => {
+    setIsLoading(true);
 
-  const ageGroups = [
-    { value: 'all', label: '전체 연령' },
-    { value: 'newborn', label: '신생아 (0-3개월)' },
-    { value: 'infant', label: '영아기 (4-12개월)' },
-    { value: 'toddler', label: '걸음마기 (1-2세)' },
-    { value: 'preschool', label: '유아기 (3-5세)' },
-    { value: 'school', label: '학령기 (6세 이상)' },
-  ];
+    try {
+      const response = await CommunityService.getPosts({
+        postType: 'question',
+        page: params.page || 1,
+        limit: 10,
+        categoryId: params.categoryId !== 'all' ? params.categoryId : undefined,
+        search: params.search || undefined,
+        ...params
+      });
 
-  const sortOptions = [
-    { value: 'recent', label: '최신순' },
-    { value: 'popular', label: '인기순' },
-    { value: 'views', label: '조회순' },
-    { value: 'replies', label: '답변 많은 순' },
-  ];
+      if (response.success) {
+        let newPosts = response.data.posts || [];
+        
+        // 클라이언트 사이드 정렬 (서버에서 지원하지 않는 경우)
+        if (sortBy === 'popular') {
+          newPosts = CommunityService.sortPostsByPopularity(newPosts);
+        } else if (sortBy === 'views') {
+          newPosts = [...newPosts].sort((a, b) => b.viewCount - a.viewCount);
+        } else if (sortBy === 'replies') {
+          newPosts = [...newPosts].sort((a, b) => b.commentCount - a.commentCount);
+        }
+        
+        setPosts(newPosts);
+        setTotalPages(response.data.pagination?.pages || 1);
+        setTotal(response.data.pagination?.total || 0);
+      }
+    } catch (error) {
+      console.error('게시물 로드 실패:', error);
+      toast({
+        title: '게시물 로드 실패',
+        description: '게시물을 불러오는데 실패했습니다.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sortBy]);
+
+  // 카테고리 로드
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await CommunityService.getCategories({ postType: 'question' });
+        if (response.success) {
+          setCategories([
+            { id: 'all', name: '전체', description: '', postType: 'question', color: '', icon: '', order: 0, isActive: true },
+            ...response.data
+          ]);
+        }
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // 게시물 로드
+  useEffect(() => {
+    const params: PostsParams = {
+      page: currentPage,
+      categoryId: selectedCategory,
+      search: searchQuery || undefined,
+    };
+
+    loadPosts(params);
+  }, [selectedCategory, searchQuery, sortBy, currentPage, loadPosts]);
+
+  // 검색 핸들러
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 상대 시간 계산
+  const getRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return '방금 전';
+    if (diffInHours < 24) return `${diffInHours}시간 전`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}일 전`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // 사용자 이름 첫 글자
+  const getUserInitial = (name: string) => {
+    return name.charAt(0).toUpperCase();
+  };
+
+  // 페이지네이션 컴포넌트
+  const Pagination = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        {pageNumbers.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => handlePageChange(page)}
+            className="w-8 h-8"
+          >
+            {page}
+          </Button>
+        ))}
+        
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  };
+
+  if (isLoading && posts.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* 헤더 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">질문 게시판</h1>
           <p className="text-muted-foreground">
-            다른 부모님들에게 질문하고 경험을 나누세요.
+            다른 부모님들에게 질문하고 경험을 나누세요. (총 {total}개)
           </p>
         </div>
-        <Button asChild>
-          <Link href="/community/questions/new">질문하기</Link>
-        </Button>
+        {isAuthenticated && (
+          <Button asChild>
+            <Link href="/community/questions/new">
+              <PenTool className="mr-2 h-4 w-4" />
+              질문하기
+            </Link>
+          </Button>
+        )}
       </div>
 
-      <div className="mb-8">
-        <Tabs defaultValue="all" className="w-full">
+      {/* 카테고리 탭 */}
+      <div className="mb-6">
+        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
           <TabsList className="w-full max-w-full overflow-auto">
             {categories.map((category) => (
-              <TabsTrigger key={category.value} value={category.value}>
-                {category.label}
+              <TabsTrigger key={category.id} value={category.id}>
+                {category.name}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
       </div>
 
+      {/* 검색 및 필터 */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+        <form onSubmit={handleSearch} className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="질문 검색하기"
+            placeholder="질문 검색하기..."
             className="w-full pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Select defaultValue="all">
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="연령대 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              {ageGroups.map((age) => (
-                <SelectItem key={age.value} value={age.value}>
-                  {age.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select defaultValue="recent">
-            <SelectTrigger className="w-full sm:w-[150px]">
+        </form>
+        
+        <div className="flex gap-4">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="정렬 기준" />
             </SelectTrigger>
             <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
+              <SelectItem value="recent">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  최신순
+                </div>
+              </SelectItem>
+              <SelectItem value="popular">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  인기순
+                </div>
+              </SelectItem>
+              <SelectItem value="views">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  조회순
+                </div>
+              </SelectItem>
+              <SelectItem value="replies">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  답변 많은 순
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
+      {/* 게시물 목록 */}
       <div className="space-y-4">
-        {questions.map((question) => (
-          <Card key={question.id} className="overflow-hidden">
-            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <div className="flex items-center space-x-4">
-                <Avatar>
-                  <AvatarImage
-                    src={question.author.image || '/placeholder.svg'}
-                    alt={question.author.name}
-                  />
-                  <AvatarFallback>
-                    {question.author.name.slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{question.author.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {question.created}
-                  </p>
+        {posts.length > 0 ? (
+          posts.map((post) => (
+            <Card key={post.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarImage
+                      src={post.author.profileImage}
+                      alt={post.author.name}
+                    />
+                    <AvatarFallback>
+                      {getUserInitial(post.author.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {post.isAnonymous ? '익명' : post.author.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {getRelativeTime(post.createdAt)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <Badge variant="outline">{question.category}</Badge>
-            </CardHeader>
-            <CardContent>
-              <Link
-                href={`/community/questions/${question.id}`}
-                className="hover:underline"
-              >
-                <h3 className="font-bold text-lg mb-2">{question.title}</h3>
-              </Link>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                {question.content}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {question.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
-              <div className="flex space-x-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                  {question.views}
-                </span>
-                <span className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                  {question.replies}
-                </span>
-                <span className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M7 10v12" />
-                    <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
-                  </svg>
-                  {question.likes}
-                </span>
-              </div>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={`/community/questions/${question.id}`}>
-                  자세히 보기
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{post.category.name}</Badge>
+                  {post.isSolved && (
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      해결됨
+                    </Badge>
+                  )}
+                  {post.isPinned && (
+                    <Badge variant="secondary">📌 고정</Badge>
+                  )}
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                <Link
+                  href={`/community/questions/${post.id}`}
+                  className="hover:underline"
+                >
+                  <h3 className="font-bold text-lg mb-2 line-clamp-2">
+                    {post.title}
+                  </h3>
                 </Link>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                  {post.content}
+                </p>
+              </CardContent>
+              
+              <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
+                <div className="flex space-x-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-3 w-3" />
+                    {post.viewCount}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageCircle className="h-3 w-3" />
+                    {post.commentCount}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <ThumbsUp className="h-3 w-3" />
+                    {post.likeCount}
+                  </span>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/community/questions/${post.id}`}>
+                    자세히 보기
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+          <div className="text-center py-12">
+            <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">
+              {searchQuery ? '검색 결과가 없습니다' : '아직 질문이 없습니다'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery 
+                ? '다른 검색어로 시도해보세요.' 
+                : '첫 번째 질문을 올려보세요!'
+              }
+            </p>
+            {isAuthenticated && !searchQuery && (
+              <Button asChild>
+                <Link href="/community/questions/new">질문하기</Link>
               </Button>
-            </CardFooter>
-          </Card>
-        ))}
+            )}
+          </div>
+        )}
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <nav className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" disabled>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            <span className="sr-only">이전 페이지</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 w-8"
-            aria-current="page"
-          >
-            1
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            2
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            3
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            4
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            5
-          </Button>
-          <Button variant="outline" size="icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-            <span className="sr-only">다음 페이지</span>
-          </Button>
-        </nav>
-      </div>
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination />
+        </div>
+      )}
+
+      {/* 로딩 오버레이 */}
+      {isLoading && posts.length > 0 && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-background p-4 rounded-lg shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <span>로딩 중...</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

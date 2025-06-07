@@ -9,17 +9,16 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
-  onImagesChange: (images: string[]) => void;
+  images: string[];
+  onChange: (images: string[]) => void;
   maxImages?: number;
-  initialImages?: string[];
 }
 
 export function ImageUpload({
-  onImagesChange,
+  images,
+  onChange,
   maxImages = 5,
-  initialImages = [],
 }: ImageUploadProps) {
-  const [images, setImages] = useState<string[]>(initialImages);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,8 +43,7 @@ export function ImageUpload({
       }
 
       const updatedImages = [...images, ...newImages];
-      setImages(updatedImages);
-      onImagesChange(updatedImages);
+      onChange(updatedImages);
     } catch (error) {
       console.error('Error processing images:', error);
     } finally {
@@ -59,8 +57,7 @@ export function ImageUpload({
 
   const handleRemoveImage = (index: number) => {
     const updatedImages = images.filter((_, i) => i !== index);
-    setImages(updatedImages);
-    onImagesChange(updatedImages);
+    onChange(updatedImages);
   };
 
   const convertFileToBase64 = (file: File): Promise<string> => {

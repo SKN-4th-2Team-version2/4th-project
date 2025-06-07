@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,378 +12,611 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from '@/hooks/use-toast';
+import CommunityService from '@/services/community-service';
+import type { PostDetail, CreateCommentRequest } from '@/types/community';
+import { 
+  Eye, 
+  MessageCircle, 
+  ThumbsUp, 
+  Bookmark, 
+  Share2, 
+  Flag,
+  Reply,
+  Crown,
+  CheckCircle,
+  ChevronRight,
+  Edit,
+  Trash2
+} from 'lucide-react';
 
 export default function QuestionDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  // 실제로는 params.id를 사용하여 API에서 데이터를 가져올 것
-  const question = {
-    id: 1,
-    title: '12개월 아기가 아직 걷지 못해요. 걱정해야 할까요?',
-    content:
-      '우리 아기가 12개월인데 아직 걷지 못하고 있어요. 기어다니는 것은 잘하는데 일어서려고 하지 않아요. 또래 아이들은 대부분 걷기 시작했다고 하는데 걱정해야 할까요?\n\n아기가 잡고 서는 것은 가능하지만 혼자 서려고 하지 않고, 손을 잡아도 걸음을 떼려고 하지 않아요. 발달 지연이 있는 건지 걱정됩니다. 비슷한 경험이 있으신 부모님들 조언 부탁드려요.',
-    author: {
-      name: '걱정많은엄마',
-      image: '/abstract-profile.png',
-      level: '열심 부모',
-      posts: 15,
-    },
-    category: '발달',
-    tags: ['영아기', '운동발달', '걸음마'],
-    replies: 8,
-    views: 124,
-    likes: 15,
-    created: '2023년 5월 14일',
-    isBookmarked: false,
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const [post, setPost] = useState<PostDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+  const [isLiked, setIsLiked] = useState(false);
+
+  // 게시물 로드
+  useEffect(() => {
+    const loadPost = async () => {
+      setIsLoading(true);
+      try {
+        const response = await CommunityService.getPost(params.id);
+        if (response.success) {
+          setPost(response.data);
+          setIsLiked(response.data.isLiked);
+        } else {
+          toast({
+            title: '게시물을 찾을 수 없습니다',
+            description: '존재하지 않거나 삭제된 게시물입니다.',
+            variant: 'destructive',
+          });
+          router.push('/community/questions');
+        }
+      } catch (error) {
+        console.error('게시물 로드 실패:', error);
+        toast({
+          title: '게시물 로드 실패',
+          description: '게시물을 불러오는데 실패했습니다.',
+          variant: 'destructive',
+        });
+        router.push('/community/questions');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [params.id, router]);
+
+  // 좋아요 토글
+  const handleLikeToggle = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: '로그인이 필요합니다',
+        description: '좋아요를 누르려면 로그인해주세요.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await CommunityService.toggleLike({
+        targetId: params.id,
+        targetType: 'post'
+      });
+
+      if (response.success) {
+        setIsLiked(response.data.isLiked);
+        setPost(prev => prev ? {
+          ...prev,
+          likeCount: response.data.likeCount
+        } : null);
+      }
+    } catch (error) {
+      console.error('좋아요 처리 실패:', error);
+      toast({
+        title: '좋아요 처리 실패',
+        description: '잠시 후 다시 시도해주세요.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const answers = [
-    {
-      id: 1,
-      content:
-        '안녕하세요! 저희 아이도 13개월까지 걷지 않았어요. 기어다니는 것만 열심히 하더니 갑자기 어느 날 일어나서 걷기 시작했답니다. 아이마다 발달 속도가 다르니 너무 걱정하지 마세요. 15개월까지는 정상 범위라고 알고 있어요.',
-      author: {
-        name: '경험자맘',
-        image: '/abstract-profile.png',
-        level: '슈퍼 부모',
-        posts: 87,
-      },
-      created: '2023년 5월 14일',
-      likes: 23,
-      isExpert: false,
-      isBestAnswer: true,
-    },
-    {
-      id: 2,
-      content:
-        '아이들마다 발달 속도는 정말 다양해요. 제 첫째는 10개월에 걸었는데, 둘째는 14개월이 되어서야 걸었어요. 지금은 둘 다 건강하게 잘 뛰어다니고 있답니다. 기어다니는 것을 잘한다면 대근육 발달에는 문제가 없는 것 같으니 조금만 더 기다려보세요.',
-      author: {
-        name: '두아이맘',
-        image: '/abstract-profile.png',
-        level: '열심 부모',
-        posts: 42,
-      },
-      created: '2023년 5월 14일',
-      likes: 15,
-      isExpert: false,
-      isBestAnswer: false,
-    },
-    {
-      id: 3,
-      content:
-        '소아과 의사입니다. 일반적으로 아이들은 9-15개월 사이에 걷기 시작하는데, 이 범위 내에서는 모두 정상 발달로 봅니다. 12개월에 걷지 못한다고 해서 발달 지연이라고 볼 수는 없어요. 중요한 것은 다른 발달 지표들도 함께 살펴보는 것입니다. 기어다니기, 잡고 서기 등을 잘 한다면 큰 걱정은 하지 않으셔도 됩니다. 18개월까지 걷지 못한다면 소아과 의사와 상담해보시는 것이 좋겠습니다.',
-      author: {
-        name: '김소아과의사',
-        image: '/caring-doctor.png',
-        level: '전문가',
-        posts: 156,
-      },
-      created: '2023년 5월 15일',
-      likes: 42,
-      isExpert: true,
-      isBestAnswer: false,
-    },
-  ];
+  // 댓글 작성
+  const handleCommentSubmit = async () => {
+    if (!isAuthenticated) {
+      toast({
+        title: '로그인이 필요합니다',
+        description: '댓글을 작성하려면 로그인해주세요.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!commentContent.trim()) {
+      toast({
+        title: '댓글 내용을 입력해주세요',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const commentData: CreateCommentRequest = {
+        postId: params.id,
+        content: commentContent.trim(),
+        isAnonymous: false
+      };
+
+      const response = await CommunityService.createComment(commentData);
+      if (response.success) {
+        // 댓글 추가 후 게시물 다시 로드
+        const updatedPost = await CommunityService.getPost(params.id);
+        if (updatedPost.success) {
+          setPost(updatedPost.data);
+        }
+        
+        setCommentContent('');
+        toast({
+          title: '댓글이 등록되었습니다',
+        });
+      }
+    } catch (error) {
+      console.error('댓글 작성 실패:', error);
+      toast({
+        title: '댓글 작성 실패',
+        description: '댓글 작성 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 해결 상태 변경 (질문 작성자만)
+  const handleSolveToggle = async () => {
+    if (!post || !isAuthenticated) return;
+
+    try {
+      const response = await CommunityService.solvePost(params.id, {
+        isSolved: !post.isSolved
+      });
+
+      if (response.success) {
+        setPost(prev => prev ? {
+          ...prev,
+          isSolved: !prev.isSolved
+        } : null);
+
+        toast({
+          title: post.isSolved ? '질문이 미해결로 변경되었습니다' : '질문이 해결되었습니다',
+        });
+      }
+    } catch (error) {
+      console.error('해결 상태 변경 실패:', error);
+      toast({
+        title: '상태 변경 실패',
+        description: '잠시 후 다시 시도해주세요.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // 댓글 좋아요 토글
+  const handleCommentLike = async (commentId: string) => {
+    if (!isAuthenticated) {
+      toast({
+        title: '로그인이 필요합니다',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await CommunityService.toggleLike({
+        targetId: commentId,
+        targetType: 'comment'
+      });
+
+      if (response.success) {
+        // 댓글 좋아요 상태 업데이트
+        setPost(prev => {
+          if (!prev) return null;
+          
+          const updateComments = (comments: any[]): any[] => {
+            return comments.map(comment => {
+              if (comment.id === commentId) {
+                return {
+                  ...comment,
+                  likeCount: response.data.likeCount
+                };
+              }
+              if (comment.replies.length > 0) {
+                return {
+                  ...comment,
+                  replies: updateComments(comment.replies)
+                };
+              }
+              return comment;
+            });
+          };
+
+          return {
+            ...prev,
+            comments: updateComments(prev.comments)
+          };
+        });
+      }
+    } catch (error) {
+      console.error('댓글 좋아요 실패:', error);
+    }
+  };
+
+  // 상대 시간 계산
+  const getRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return '방금 전';
+    if (diffInHours < 24) return `${diffInHours}시간 전`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}일 전`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // 사용자 이름 첫 글자
+  const getUserInitial = (name: string) => {
+    return name.charAt(0).toUpperCase();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-32" />
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">게시물을 찾을 수 없습니다</h1>
+          <Button asChild>
+            <Link href="/community/questions">목록으로 돌아가기</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* 브레드크럼 */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
           <Link href="/community" className="hover:text-primary">
             커뮤니티
           </Link>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-3 w-3"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
+          <ChevronRight className="h-3 w-3" />
           <Link href="/community/questions" className="hover:text-primary">
             질문 게시판
           </Link>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-3 w-3"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
+          <ChevronRight className="h-3 w-3" />
           <span>질문 상세</span>
         </div>
 
         <div className="flex justify-between items-start gap-4 flex-wrap">
-          <h1 className="text-2xl md:text-3xl font-bold">{question.title}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{post.title}</h1>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleLikeToggle}
+              className={isLiked ? 'text-red-600 border-red-200 bg-red-50' : ''}
+            >
+              <ThumbsUp className={`mr-1 h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+              추천 {post.likeCount}
+            </Button>
             <Button variant="outline" size="sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-1"
-              >
-                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-              </svg>
+              <Bookmark className="mr-1 h-4 w-4" />
               북마크
             </Button>
             <Button variant="outline" size="sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-1"
-              >
-                <path d="M7 10v12" />
-                <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
-              </svg>
-              추천
+              <Share2 className="mr-1 h-4 w-4" />
+              공유
             </Button>
           </div>
         </div>
       </div>
 
+      {/* 게시물 내용 */}
       <Card className="mb-8">
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div className="flex items-start space-x-4">
             <Avatar className="h-10 w-10">
               <AvatarImage
-                src={question.author.image || '/placeholder.svg'}
-                alt={question.author.name}
+                src={post.author.profileImage}
+                alt={post.author.name}
               />
               <AvatarFallback>
-                {question.author.name.slice(0, 2)}
+                {getUserInitial(post.author.name)}
               </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">{question.author.name}</p>
+                <p className="text-sm font-medium">
+                  {post.isAnonymous ? '익명' : post.author.name}
+                </p>
                 <Badge variant="outline" className="text-xs">
-                  {question.author.level}
+                  작성자
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                작성일: {question.created}
+                {getRelativeTime(post.createdAt)}
               </p>
             </div>
           </div>
-          <Badge>{question.category}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">{post.category.name}</Badge>
+            {post.isSolved && (
+              <Badge className="bg-green-100 text-green-800 border-green-200">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                해결됨
+              </Badge>
+            )}
+            {post.isPinned && (
+              <Badge variant="secondary">📌 고정</Badge>
+            )}
+          </div>
         </CardHeader>
+        
         <CardContent>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            {question.content.split('\n\n').map((paragraph, index) => (
+          <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
+            {post.content.split('\n\n').map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
           </div>
-          <div className="flex flex-wrap gap-2 mt-4">
-            {question.tags.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-          </div>
+          
+          {/* 이미지가 있는 경우 */}
+          {Array.isArray(post.images) && post.images.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {post.images.map((image, index) => (
+                <img
+                  key={index}
+                  src={typeof image === 'string' ? image : image.imageUrl}
+                  alt={typeof image === 'string' ? `이미지 ${index + 1}` : image.altText || `이미지 ${index + 1}`}
+                  className="rounded-lg max-w-full h-auto"
+                />
+              ))}
+            </div>
+          )}
         </CardContent>
+        
         <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
           <div className="flex space-x-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              조회 {question.views}
+              <Eye className="h-3 w-3" />
+              조회 {post.viewCount}
             </span>
             <span className="flex items-center gap-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              답변 {question.replies}
+              <MessageCircle className="h-3 w-3" />
+              댓글 {post.commentCount}
             </span>
             <span className="flex items-center gap-1">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M7 10v12" />
-                <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
-              </svg>
-              추천 {question.likes}
+              <ThumbsUp className="h-3 w-3" />
+              추천 {post.likeCount}
             </span>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/community/questions/new">질문하기</Link>
-          </Button>
+          
+          <div className="flex gap-2">
+            {/* 작성자만 해결 상태 변경 가능 */}
+            {isAuthenticated && post.postType === 'question' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSolveToggle}
+                className={post.isSolved ? 'text-green-600 border-green-200 bg-green-50' : ''}
+              >
+                <CheckCircle className="mr-1 h-4 w-4" />
+                {post.isSolved ? '미해결로 변경' : '해결됨으로 변경'}
+              </Button>
+            )}
+            <Button variant="outline" size="sm">
+              <Flag className="mr-1 h-4 w-4" />
+              신고
+            </Button>
+          </div>
         </CardFooter>
       </Card>
 
+      {/* 댓글 섹션 */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4">답변 {answers.length}개</h2>
-        <div className="space-y-4">
-          {answers.map((answer) => (
-            <Card
-              key={answer.id}
-              className={answer.isBestAnswer ? 'border-primary' : ''}
-            >
-              {answer.isBestAnswer && (
-                <div className="bg-primary text-primary-foreground px-4 py-1 text-sm font-medium">
-                  베스트 답변
-                </div>
-              )}
-              <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                <div className="flex items-start space-x-4">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={answer.author.image || '/placeholder.svg'}
-                      alt={answer.author.name}
-                    />
-                    <AvatarFallback>
-                      {answer.author.name.slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">
-                        {answer.author.name}
-                      </p>
-                      {answer.isExpert ? (
-                        <Badge className="bg-blue-500 hover:bg-blue-600">
-                          {answer.author.level}
-                        </Badge>
-                      ) : (
+        <h2 className="text-xl font-bold mb-4">
+          댓글 {post.commentCount}개
+        </h2>
+        
+        {post.comments.length > 0 ? (
+          <div className="space-y-4">
+            {CommunityService.organizeCommentsToTree(post.comments).map((comment) => (
+              <Card key={comment.id}>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="flex items-start space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={comment.author.profileImage}
+                        alt={comment.author.name}
+                      />
+                      <AvatarFallback>
+                        {getUserInitial(comment.author.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">
+                          {comment.isAnonymous ? '익명' : comment.author.name}
+                        </p>
                         <Badge variant="outline" className="text-xs">
-                          {answer.author.level}
+                          일반
                         </Badge>
-                      )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {getRelativeTime(comment.createdAt)}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      작성일: {answer.created}
-                    </p>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <p>{answer.content}</p>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="mr-1"
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <p className="text-sm">{comment.content}</p>
+                </CardContent>
+                
+                <CardFooter className="flex justify-between pt-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    onClick={() => handleCommentLike(comment.id)}
                   >
-                    <path d="M7 10v12" />
-                    <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
-                  </svg>
-                  추천 {answer.likes}
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm">
-                    신고
+                    <ThumbsUp className="mr-1 h-3 w-3" />
+                    추천 {comment.likeCount}
                   </Button>
-                  <Button variant="ghost" size="sm">
-                    답글
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm">
+                      <Reply className="mr-1 h-3 w-3" />
+                      답글
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Flag className="mr-1 h-3 w-3" />
+                      신고
+                    </Button>
+                  </div>
+                </CardFooter>
+
+                {/* 대댓글 */}
+                {comment.replies.length > 0 && (
+                  <div className="ml-8 border-t pt-4 space-y-3">
+                    {comment.replies.map((reply) => (
+                      <div key={reply.id} className="flex space-x-3">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage
+                            src={reply.author.profileImage}
+                            alt={reply.author.name}
+                          />
+                          <AvatarFallback className="text-xs">
+                            {getUserInitial(reply.author.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-xs font-medium">
+                              {reply.isAnonymous ? '익명' : reply.author.name}
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              {getRelativeTime(reply.createdAt)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {reply.content}
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-xs"
+                              onClick={() => handleCommentLike(reply.id)}
+                            >
+                              <ThumbsUp className="mr-1 h-2 w-2" />
+                              {reply.likeCount}
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                              답글
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <MessageCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
+            <p>아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</p>
+          </div>
+        )}
+      </div>
+
+      {/* 댓글 작성 */}
+      {isAuthenticated ? (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4">댓글 작성하기</h2>
+          <Card>
+            <CardContent className="pt-6">
+              <Textarea
+                placeholder="댓글을 작성해주세요..."
+                rows={4}
+                value={commentContent}
+                onChange={(e) => setCommentContent(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </CardContent>
+            <CardFooter className="flex justify-between border-t px-6 py-3">
+              <p className="text-xs text-muted-foreground">
+                댓글 작성 시{' '}
+                <Link href="/terms" className="text-primary hover:underline">
+                  커뮤니티 이용규칙
+                </Link>
+                을 지켜주세요.
+              </p>
+              <Button 
+                onClick={handleCommentSubmit}
+                disabled={isSubmitting || !commentContent.trim()}
+              >
+                {isSubmitting ? '등록 중...' : '댓글 등록'}
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
-      </div>
+      ) : (
+        <div className="mb-8">
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-muted-foreground mb-4">
+                댓글을 작성하려면 로그인이 필요합니다.
+              </p>
+              <Button asChild>
+                <Link href="/login">로그인하기</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-      <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4">답변 작성하기</h2>
-        <Card>
-          <CardContent className="pt-6">
-            <Textarea placeholder="답변을 작성해주세요." rows={5} />
-          </CardContent>
-          <CardFooter className="flex justify-between border-t px-6 py-3">
-            <p className="text-xs text-muted-foreground">
-              답변 작성 시{' '}
-              <Link href="/terms" className="text-primary hover:underline">
-                커뮤니티 이용규칙
-              </Link>
-              을 지켜주세요.
-            </p>
-            <Button>답변 등록</Button>
-          </CardFooter>
-        </Card>
-      </div>
-
+      {/* 하단 버튼 */}
       <div className="flex justify-between">
         <Button variant="outline" asChild>
           <Link href="/community/questions">목록으로</Link>
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline">수정</Button>
-          <Button variant="destructive">삭제</Button>
-        </div>
+        {isAuthenticated && (
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/community/questions/${post.id}/edit`}>
+                <Edit className="mr-1 h-4 w-4" />
+                수정
+              </Link>
+            </Button>
+            <Button variant="destructive">
+              <Trash2 className="mr-1 h-4 w-4" />
+              삭제
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
