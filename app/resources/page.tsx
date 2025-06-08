@@ -9,257 +9,223 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Baby, 
+  Heart, 
+  BookOpen, 
+  AlertTriangle, 
+  TrendingUp, 
+  Utensils,
+  Shield,
+  Activity,
+  Calendar,
+  FileText,
+  Users,
+  HelpCircle,
+  ArrowRight,
+  Star,
+  CheckCircle
+} from 'lucide-react';
 
 export default function ResourcesPage() {
-  const categories = [
-    { id: 'tips', name: '육아 팁', icon: 'lightbulb' },
-    { id: 'guides', name: '가이드', icon: 'book-open' },
-    { id: 'emergency', name: '응급 상황', icon: 'alert-circle' },
-    { id: 'nutrition', name: '영양 및 식이', icon: 'utensils' },
-    { id: 'sleep', name: '수면', icon: 'moon' },
-    { id: 'education', name: '교육', icon: 'graduation-cap' },
-    { id: 'health', name: '건강', icon: 'heart' },
-    { id: 'policy', name: '정책 및 제도', icon: 'landmark' },
+  // 실제 존재하는 페이지들로 매핑
+  const mainCategories = [
+    { 
+      id: 'premature-babies', 
+      name: '이른둥이 가이드', 
+      icon: Baby,
+      description: '이른둥이(미숙아)의 정의, 건강 관리, 발달 지원',
+      href: '/resources/premature-babies',
+      color: 'bg-pink-500',
+      featured: true
+    },
+    { 
+      id: 'development-milestones', 
+      name: '발달 이정표', 
+      icon: TrendingUp,
+      description: '연령별 발달 단계와 이정표를 확인하세요',
+      href: '/resources/development-milestones',
+      color: 'bg-blue-500',
+      featured: true
+    },
+    { 
+      id: 'nutrition-guide', 
+      name: '영양 가이드', 
+      icon: Utensils,
+      description: '연령별 영양 정보와 모유수유 가이드',
+      href: '/resources/nutrition-guide',
+      color: 'bg-green-500',
+      featured: true
+    },
+    { 
+      id: 'growth-chart', 
+      name: '성장 차트', 
+      icon: Activity,
+      description: '월령별 신체 성장 기준표',
+      href: '/resources/growth-chart',
+      color: 'bg-purple-500',
+      featured: true
+    },
+    { 
+      id: 'emergency-guide', 
+      name: '응급상황 가이드', 
+      icon: AlertTriangle,
+      description: '응급상황 대처법과 안전 수칙',
+      href: '/resources/emergency-guide',
+      color: 'bg-red-500',
+      featured: true
+    }
   ];
 
-  const resources = {
-    tips: [
-      {
-        id: 1,
-        title: '아이와의 효과적인 대화법',
-        description: '아이의 말에 귀 기울이고 효과적으로 소통하는 방법',
-        category: '의사소통',
-        readTime: '5분',
-      },
-      {
-        id: 2,
-        title: '영유아 수면 문제 해결하기',
-        description: '아이의 수면 패턴을 개선하고 숙면을 돕는 방법',
-        category: '수면',
-        readTime: '7분',
-      },
-      {
-        id: 3,
-        title: '편식하는 아이 식습관 개선하기',
-        description: '까다로운 식성을 가진 아이의 식습관을 개선하는 전략',
-        category: '식이',
-        readTime: '6분',
-      },
-    ],
-    guides: [
-      {
-        id: 1,
-        title: '연령별 발달 가이드',
-        description: '0세부터 7세까지 연령별 발달 특성과 부모의 역할',
-        category: '발달',
-        readTime: '10분',
-      },
-      {
-        id: 2,
-        title: '아이 감정 코칭 가이드',
-        description: '아이의 감정을 인정하고 조절할 수 있도록 돕는 방법',
-        category: '심리',
-        readTime: '8분',
-      },
-      {
-        id: 3,
-        title: '놀이를 통한 학습 가이드',
-        description: '놀이를 통해 아이의 인지 발달과 학습을 촉진하는 방법',
-        category: '교육',
-        readTime: '9분',
-      },
-    ],
-    emergency: [
-      {
-        id: 1,
-        title: '영유아 응급처치 기본',
-        description: '부모가 알아야 할 기본적인 응급처치 방법',
-        category: '응급',
-        readTime: '6분',
-      },
-      {
-        id: 2,
-        title: '아이가 열이 날 때 대처법',
-        description: '발열 시 증상 확인과 적절한 대처 방법',
-        category: '건강',
-        readTime: '5분',
-      },
-      {
-        id: 3,
-        title: '이물질 삼킴 사고 대처법',
-        description: '아이가 이물질을 삼켰을 때 응급 대응 방법',
-        category: '응급',
-        readTime: '4분',
-      },
-    ],
-  };
+  const quickLinks = [
+    {
+      title: '발달 검사 체크리스트',
+      description: '우리 아이 발달 상태 간단 체크',
+      href: '/resources/development-milestones',
+      icon: CheckCircle
+    },
+    {
+      title: '응급상황 대처법',
+      description: '위급한 상황별 즉시 대응 가이드',
+      href: '/resources/emergency-guide',
+      icon: AlertTriangle
+    },
+    {
+      title: '영양소별 필수 정보',
+      description: '영유아에게 필요한 영양소 가이드',
+      href: '/resources/nutrition-guide',
+      icon: Utensils
+    }
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">육아 자료실</h1>
-        <p className="text-muted-foreground">
-          초보 엄마 아빠의 육아 부담을 덜어줄 다양한 정보와 자료를 찾아보세요.
+      {/* 헤더 섹션 */}
+      <div className="mb-12 text-center">
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          육아 자료실
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          초보 엄마 아빠를 위한 전문적이고 실용적인 육아 정보를 한 곳에서 만나보세요
         </p>
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <Badge variant="outline" className="px-3 py-1">
+            <Star className="w-4 h-4 mr-1" />
+            전문가 검증
+          </Badge>
+          <Badge variant="outline" className="px-3 py-1">
+            <FileText className="w-4 h-4 mr-1" />
+            실제 데이터 기반
+          </Badge>
+          <Badge variant="outline" className="px-3 py-1">
+            <Users className="w-4 h-4 mr-1" />
+            부모 맞춤형
+          </Badge>
+        </div>
       </div>
 
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-6">카테고리</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {categories.map((category) => (
-            <Card
-              key={category.id}
-              className="text-center hover:bg-accent/50 transition-colors"
-            >
-              <Link href={`/resources/${category.id}`} className="block p-4">
-                <div className="flex flex-col items-center">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-primary"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="m12 16 4-4" />
-                      <path d="m12 16-4-4" />
-                      <path d="M12 8v8" />
-                    </svg>
-                  </div>
-                  <span className="font-medium">{category.name}</span>
-                </div>
-              </Link>
-            </Card>
-          ))}
+      {/* 주요 카테고리 섹션 */}
+      <section className="mb-16">
+        <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
+          <BookOpen className="w-6 h-6" />
+          주요 자료 카테고리
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          {mainCategories.map((category) => {
+            const IconComponent = category.icon;
+            return (
+              <Card key={category.id} className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20">
+                <Link href={category.href} className="block">
+                  <CardHeader className="text-center pb-4">
+                    <div className={`w-16 h-16 ${category.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-8 h-8 text-white" />
+                    </div>
+                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                      {category.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {category.description}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="justify-center">
+                    <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      자세히 보기
+                      <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </CardFooter>
+                </Link>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-6">추천 자료</h2>
-        <Tabs defaultValue="tips" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="tips">육아 팁</TabsTrigger>
-            <TabsTrigger value="guides">가이드</TabsTrigger>
-            <TabsTrigger value="emergency">응급 상황</TabsTrigger>
-          </TabsList>
-          <TabsContent value="tips" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {resources.tips.map((resource) => (
-                <Card key={resource.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">
-                        {resource.title}
-                      </CardTitle>
-                      <Badge variant="outline">{resource.category}</Badge>
+      {/* 빠른 접근 링크 */}
+      <section className="mb-16">
+        <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
+          <Activity className="w-6 h-6" />
+          빠른 접근
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {quickLinks.map((link, index) => {
+            const IconComponent = link.icon;
+            return (
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:border-primary/30">
+                <Link href={link.href} className="block p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <IconComponent className="w-6 h-6 text-primary" />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {resource.description}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      읽는 시간: {resource.readTime}
-                    </span>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/resources/tips/${resource.id}`}>
-                        자세히 보기
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="guides" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {resources.guides.map((resource) => (
-                <Card key={resource.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">
-                        {resource.title}
-                      </CardTitle>
-                      <Badge variant="outline">{resource.category}</Badge>
+                    <div className="flex-1">
+                      <h3 className="font-semibold group-hover:text-primary transition-colors mb-1">
+                        {link.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {link.description}
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {resource.description}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      읽는 시간: {resource.readTime}
-                    </span>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/resources/guides/${resource.id}`}>
-                        자세히 보기
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="emergency" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {resources.emergency.map((resource) => (
-                <Card key={resource.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">
-                        {resource.title}
-                      </CardTitle>
-                      <Badge variant="outline">{resource.category}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {resource.description}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      읽는 시간: {resource.readTime}
-                    </span>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/resources/emergency/${resource.id}`}>
-                        자세히 보기
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  </div>
+                </Link>
+              </Card>
+            );
+          })}
+        </div>
       </section>
 
-      <section className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-8">
+      {/* 도움말 섹션 */}
+      <section className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-2xl p-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-center md:text-left">
-            <h2 className="text-2xl font-bold mb-2">자료를 찾지 못하셨나요?</h2>
-            <p className="text-muted-foreground">
-              찾으시는 정보가 없다면 커뮤니티에 질문하거나 전문가에게 문의하여
-              육아 부담을 덜어보세요.
+          <div className="text-center md:text-left flex-1">
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
+              <HelpCircle className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">더 많은 도움이 필요하신가요?</h2>
+            </div>
+            <p className="text-muted-foreground mb-6 leading-relaxed">
+              찾으시는 정보가 없거나 개별적인 상담이 필요하시다면, 
+              육아 커뮤니티나 전문가 상담을 통해 도움을 받아보세요.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <Button variant="outline" size="lg" asChild className="min-w-[160px]">
+                <Link href="/community">
+                  <Users className="w-4 h-4 mr-2" />
+                  커뮤니티 참여
+                </Link>
+              </Button>
+              <Button size="lg" asChild className="min-w-[160px]">
+                <Link href="/expert">
+                  <Heart className="w-4 h-4 mr-2" />
+                  전문가 상담
+                </Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button variant="outline" asChild>
-              <Link href="/community/questions/new">커뮤니티에 질문하기</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/expert/qa/new">전문가에게 문의하기</Link>
-            </Button>
+          <div className="hidden md:block">
+            <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full flex items-center justify-center">
+              <Baby className="w-16 h-16 text-primary" />
+            </div>
           </div>
         </div>
       </section>
