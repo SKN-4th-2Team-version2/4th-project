@@ -27,7 +27,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className={`${inter.variable} ${notoSansKr.variable} font-sans`}>
+      <body
+        className={`${inter.variable} ${notoSansKr.variable} font-sans`}
+        suppressHydrationWarning
+      >
         <Providers>
           <div className="flex min-h-screen flex-col">
             <Header />
