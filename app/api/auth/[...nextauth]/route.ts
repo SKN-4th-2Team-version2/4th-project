@@ -29,10 +29,22 @@ export const authOptions: NextAuthOptions = {
     KakaoProvider({
       clientId: process.env.KAKAO_CLIENT_ID!,
       clientSecret: process.env.KAKAO_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          response_type: 'code',
+        },
+      },
     }),
     NaverProvider({
       clientId: process.env.NAVER_CLIENT_ID!,
       clientSecret: process.env.NAVER_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          response_type: 'code',
+        },
+      },
     }),
   ],
   callbacks: {
@@ -48,6 +60,12 @@ export const authOptions: NextAuthOptions = {
               provider: account.provider,
               access_token: account.access_token,
               id_token: account.id_token,
+              code: account.code,
+              user: {
+                email: user.email,
+                name: user.name,
+                image: user.image,
+              },
             },
             {
               headers: {
@@ -61,7 +79,12 @@ export const authOptions: NextAuthOptions = {
           if (response.data.success) {
             typedToken.djangoAccessToken = response.data.data.access;
             typedToken.djangoRefreshToken = response.data.data.refresh;
-            typedToken.user = response.data.data.user;
+            typedToken.user = {
+              ...response.data.data.user,
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            };
             typedToken.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30일
           } else {
             console.error('Django 소셜 로그인 에러:', response.data.message);
@@ -70,8 +93,11 @@ export const authOptions: NextAuthOptions = {
                 '소셜 로그인 처리 중 오류가 발생했습니다.',
             );
           }
-        } catch (error) {
-          console.error('소셜 로그인 토큰 처리 실패:', error);
+        } catch (error: any) {
+          console.error(
+            '소셜 로그인 토큰 처리 실패:',
+            error.response?.data || error.message,
+          );
           // 에러를 다시 던지지 말고 기본값 설정
           typedToken.error = 'OAuthCallback';
           return typedToken;
@@ -123,6 +149,7 @@ export const authOptions: NextAuthOptions = {
             ...typedToken.user,
             email: typedToken.user.email || session.user?.email || '',
             name: typedToken.user.name || session.user?.name || '',
+            image: typedToken.user.image || session.user?.image || '',
           };
         }
         if (typedToken.exp) {

@@ -59,9 +59,18 @@ export function ExpertChatWithCategories({
     isConnected: isWebSocketConnected,
     sendMessage: sendWebSocketMessage,
     lastMessage,
+    reconnect,
   } = useWebSocket(
     process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001',
   );
+
+  // WebSocket 연결 상태 모니터링
+  useEffect(() => {
+    if (!isWebSocketConnected) {
+      console.log('WebSocket 연결이 끊어졌습니다. 재연결을 시도합니다...');
+      reconnect();
+    }
+  }, [isWebSocketConnected, reconnect]);
 
   // 이전 상담 내용 불러오기
   useEffect(() => {

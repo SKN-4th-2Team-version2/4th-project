@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExpertChatWithCategories } from '@/components/expert-chat/expert-chat-with-categories';
+import { ExpertChatWithCategories } from '@/components/expert-chat/expert-chat-with-categories-websocket';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { History } from 'lucide-react';
