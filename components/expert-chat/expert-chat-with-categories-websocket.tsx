@@ -350,6 +350,10 @@ export function ExpertChatWithCategories({
           {isSpecialCategory(category) && (
             <span className="block mt-1 text-purple-600 text-sm font-medium">
               ✨ 전문 AI 모델로 더욱 상세한 상담이 가능합니다.
+              <br />
+              <span className="text-xs text-gray-500">
+                (FastAPI 서버: 127.0.0.1:8080)
+              </span>
             </span>
           )}
           <br />
@@ -422,7 +426,17 @@ export function ExpertChatWithCategories({
         {error && (
           <Alert variant="destructive" className="mt-2">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>
+              {error}
+              {isSpecialCategory(category) && error.includes('서버에 연결할 수 없습니다') && (
+                <div className="mt-2 text-xs">
+                  해결 방법:
+                  <br />1. FastAPI 서버가 실행 중인지 확인
+                  <br />2. 127.0.0.1:8080 포트가 사용 가능한지 확인
+                  <br />3. 서버 로그를 확인하여 오류 메시지 확인
+                </div>
+              )}
+            </AlertDescription>
           </Alert>
         )}
       </CardHeader>
