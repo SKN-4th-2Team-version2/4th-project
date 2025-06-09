@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,43 +13,72 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
-import { TermsOfService } from '@/components/terms-of-service';
-import { PrivacyPolicy } from '@/components/privacy-policy';
-import { useAuth } from '@/hooks/use-auth';
-import AuthService from '@/services/auth-service';
+import { Shield, Zap, Lock, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-export default function SignupPage() {
+export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
-  const { redirectIfAuthenticated } = useAuth();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  // 이미 로그인된 사용자는 메인 페이지로 리다이렉트
-  redirectIfAuthenticated();
+  useEffect(() => {
+    // 이미 로그인된 사용자는 메인 페이지로 리다이렉트
+    if (status === 'authenticated' && session?.djangoAccessToken) {
+      router.push('/');
+    }
+  }, [status, session, router]);
 
-  // 소셜 회원가입 핸들러
-  const handleSocialSignup = (provider: 'google' | 'kakao' | 'naver') => {
-    setIsLoading(provider);
-    const socialLoginUrl = AuthService.getSocialLoginUrl(provider);
-    window.location.href = socialLoginUrl;
+  const handleSocialSignUp = async (provider: 'google' | 'kakao' | 'naver') => {
+    try {
+      setIsLoading(provider);
+      const result = await signIn(provider, {
+        callbackUrl: '/',
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error('회원가입에 실패했습니다. 다시 시도해주세요.');
+        console.error('회원가입 실패:', result.error);
+        return;
+      }
+
+      if (result?.ok) {
+        router.push('/');
+      }
+    } catch (error) {
+      toast.error('회원가입 중 오류가 발생했습니다.');
+      console.error('회원가입 중 오류 발생:', error);
+    } finally {
+      setIsLoading(null);
+    }
   };
+
+  // 로딩 중이거나 이미 인증된 경우
+  if (status === 'loading' || status === 'authenticated') {
+    return (
+      <div className="container flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="container flex h-screen items-center justify-center">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">마파덜 시작하기</CardTitle>
+            <CardTitle className="text-2xl font-bold">마파덜 회원가입</CardTitle>
             <CardDescription>
-              소셜 계정으로 간편하게 회원가입하고<br />
-              안전하고 편리한 육아 정보를 경험해보세요.
+              소셜 계정으로 간편하게<br />
+              마파덜 서비스를 시작해보세요.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-3">
               <Button
                 variant="outline"
                 className="w-full h-12"
-                onClick={() => handleSocialSignup('google')}
+                onClick={() => handleSocialSignUp('google')}
                 disabled={!!isLoading}
               >
                 {isLoading === 'google' ? (
@@ -78,13 +109,13 @@ export default function SignupPage() {
                     />
                   </svg>
                 )}
-                Google로 시작하기
+                Google로 회원가입
               </Button>
 
               <Button
                 variant="outline"
                 className="w-full h-12"
-                onClick={() => handleSocialSignup('kakao')}
+                onClick={() => handleSocialSignUp('kakao')}
                 disabled={!!isLoading}
               >
                 {isLoading === 'kakao' ? (
@@ -94,13 +125,13 @@ export default function SignupPage() {
                     <span className="text-sm font-bold text-black">K</span>
                   </div>
                 )}
-                카카오로 시작하기
+                카카오로 회원가입
               </Button>
 
               <Button
                 variant="outline"
                 className="w-full h-12"
-                onClick={() => handleSocialSignup('naver')}
+                onClick={() => handleSocialSignUp('naver')}
                 disabled={!!isLoading}
               >
                 {isLoading === 'naver' ? (
@@ -110,37 +141,38 @@ export default function SignupPage() {
                     <span className="text-sm font-bold text-white">N</span>
                   </div>
                 )}
-                네이버로 시작하기
+                네이버로 회원가입
               </Button>
             </div>
 
-            <div className="relative my-6">
+            <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  왜 소셜 로그인만 제공할까요?
+                  소셜 회원가입의 장점
                 </span>
               </div>
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <h4 className="text-sm font-medium">🔐 더 안전한 계정 관리</h4>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• 비밀번호 분실 걱정 없음</li>
-                <li>• 대형 플랫폼의 보안 시스템 활용</li>
-                <li>• 2단계 인증 자동 적용</li>
-                <li>• 개인정보 최소 수집</li>
-              </ul>
+            <div className="grid gap-3">
+              <div className="flex items-center space-x-2 text-sm">
+                <Shield className="h-4 w-4 text-green-600" />
+                <span className="text-muted-foreground">NextAuth.js로 안전한 OAuth</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <Zap className="h-4 w-4 text-blue-600" />
+                <span className="text-muted-foreground">간편한 회원가입</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <Lock className="h-4 w-4 text-purple-600" />
+                <span className="text-muted-foreground">JWT 토큰 기반 API 인증</span>
+              </div>
             </div>
           </CardContent>
           
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-xs text-muted-foreground text-center leading-relaxed">
-              회원가입을 진행하면 마파덜의 <TermsOfService /> 과{' '}
-              <PrivacyPolicy /> 에 동의하게 됩니다.
-            </div>
+          <CardFooter className="flex justify-center">
             <div className="text-sm text-center">
               이미 계정이 있으신가요?{' '}
               <Link

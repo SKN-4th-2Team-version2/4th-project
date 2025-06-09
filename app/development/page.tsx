@@ -66,9 +66,6 @@ export default function DevelopmentPage() {
               <Button size="lg" asChild>
                 <Link href="/development/record">발달 기록 시작하기</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/development/tracker">발달 추적 보기</Link>
-              </Button>
             </div>
           </div>
         </div>

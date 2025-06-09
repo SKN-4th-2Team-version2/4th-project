@@ -2,10 +2,9 @@ import type React from 'react';
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from '@/components/theme-provider';
+import Providers from '@/components/providers';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const notoSansKr = Noto_Sans_KR({
@@ -29,14 +28,13 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${inter.variable} ${notoSansKr.variable} font-sans`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <Providers>
           <div className="flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
-            <Toaster />
           </div>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 import CommunityService from '@/services/community-service';
-import type { PostDetail, CreateCommentRequest } from '@/types/community';
+import type { PostDetail, CreateCommentRequest, CommunityComment } from '@/types/community';
 import { 
   Eye, 
   MessageCircle, 
@@ -36,8 +36,9 @@ import {
 export default function QuestionDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const unwrappedParams = use(params);
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [post, setPost] = useState<PostDetail | null>(null);
@@ -51,10 +52,10 @@ export default function QuestionDetailPage({
     const loadPost = async () => {
       setIsLoading(true);
       try {
-        const response = await CommunityService.getPost(params.id);
+        const response = await CommunityService.getPost(unwrappedParams.id);
         if (response.success) {
           setPost(response.data);
-          setIsLiked(response.data.isLiked);
+          setIsLiked(response.data.is_liked);
         } else {
           toast({
             title: '게시물을 찾을 수 없습니다',
@@ -77,7 +78,7 @@ export default function QuestionDetailPage({
     };
 
     loadPost();
-  }, [params.id, router]);
+  }, [unwrappedParams.id, router]);
 
   // 좋아요 토글
   const handleLikeToggle = async () => {
@@ -92,15 +93,15 @@ export default function QuestionDetailPage({
 
     try {
       const response = await CommunityService.toggleLike({
-        targetId: params.id,
+        targetId: unwrappedParams.id,
         targetType: 'post'
       });
 
       if (response.success) {
-        setIsLiked(response.data.isLiked);
+        setIsLiked(response.data.is_liked);
         setPost(prev => prev ? {
           ...prev,
-          likeCount: response.data.likeCount
+          like_count: response.data.like_count
         } : null);
       }
     } catch (error) {
@@ -135,15 +136,15 @@ export default function QuestionDetailPage({
     setIsSubmitting(true);
     try {
       const commentData: CreateCommentRequest = {
-        postId: params.id,
+        post_id: unwrappedParams.id,
         content: commentContent.trim(),
-        isAnonymous: false
+        is_anonymous: false
       };
 
       const response = await CommunityService.createComment(commentData);
       if (response.success) {
         // 댓글 추가 후 게시물 다시 로드
-        const updatedPost = await CommunityService.getPost(params.id);
+        const updatedPost = await CommunityService.getPost(unwrappedParams.id);
         if (updatedPost.success) {
           setPost(updatedPost.data);
         }
@@ -170,18 +171,18 @@ export default function QuestionDetailPage({
     if (!post || !isAuthenticated) return;
 
     try {
-      const response = await CommunityService.solvePost(params.id, {
-        isSolved: !post.isSolved
+      const response = await CommunityService.solvePost(unwrappedParams.id, {
+        isSolved: !post.is_solved
       });
 
       if (response.success) {
         setPost(prev => prev ? {
           ...prev,
-          isSolved: !prev.isSolved
+          is_solved: !prev.is_solved
         } : null);
 
         toast({
-          title: post.isSolved ? '질문이 미해결로 변경되었습니다' : '질문이 해결되었습니다',
+          title: post.is_solved ? '질문이 미해결로 변경되었습니다' : '질문이 해결되었습니다',
         });
       }
     } catch (error) {
@@ -215,27 +216,19 @@ export default function QuestionDetailPage({
         setPost(prev => {
           if (!prev) return null;
           
-          const updateComments = (comments: any[]): any[] => {
-            return comments.map(comment => {
-              if (comment.id === commentId) {
-                return {
-                  ...comment,
-                  likeCount: response.data.likeCount
-                };
-              }
-              if (comment.replies.length > 0) {
-                return {
-                  ...comment,
-                  replies: updateComments(comment.replies)
-                };
-              }
-              return comment;
-            });
-          };
+          const updatedComments = prev.comments.map(comment => {
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                like_count: response.data.like_count
+              };
+            }
+            return comment;
+          });
 
           return {
             ...prev,
-            comments: updateComments(prev.comments)
+            comments: updatedComments
           };
         });
       }
@@ -319,7 +312,7 @@ export default function QuestionDetailPage({
               className={isLiked ? 'text-red-600 border-red-200 bg-red-50' : ''}
             >
               <ThumbsUp className={`mr-1 h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-              추천 {post.likeCount}
+              추천 {post.like_count}
             </Button>
             <Button variant="outline" size="sm">
               <Bookmark className="mr-1 h-4 w-4" />
@@ -339,36 +332,36 @@ export default function QuestionDetailPage({
           <div className="flex items-start space-x-4">
             <Avatar className="h-10 w-10">
               <AvatarImage
-                src={post.author.profileImage}
-                alt={post.author.name}
+                src={post.user.profile_image}
+                alt={post.user.name}
               />
               <AvatarFallback>
-                {getUserInitial(post.author.name)}
+                {getUserInitial(post.user.name)}
               </AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium">
-                  {post.isAnonymous ? '익명' : post.author.name}
+                  {post.is_anonymous ? '익명' : post.user.name}
                 </p>
                 <Badge variant="outline" className="text-xs">
                   작성자
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                {getRelativeTime(post.createdAt)}
+                {getRelativeTime(post.created_at)}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{post.category.name}</Badge>
-            {post.isSolved && (
+            {post.is_solved && (
               <Badge className="bg-green-100 text-green-800 border-green-200">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 해결됨
               </Badge>
             )}
-            {post.isPinned && (
+            {post.is_pinned && (
               <Badge variant="secondary">📌 고정</Badge>
             )}
           </div>
@@ -400,31 +393,19 @@ export default function QuestionDetailPage({
           <div className="flex space-x-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Eye className="h-3 w-3" />
-              조회 {post.viewCount}
+              조회 {post.view_count}
             </span>
             <span className="flex items-center gap-1">
               <MessageCircle className="h-3 w-3" />
-              댓글 {post.commentCount}
+              댓글 {post.comment_count}
             </span>
             <span className="flex items-center gap-1">
               <ThumbsUp className="h-3 w-3" />
-              추천 {post.likeCount}
+              추천 {post.like_count}
             </span>
           </div>
           
           <div className="flex gap-2">
-            {/* 작성자만 해결 상태 변경 가능 */}
-            {isAuthenticated && post.postType === 'question' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSolveToggle}
-                className={post.isSolved ? 'text-green-600 border-green-200 bg-green-50' : ''}
-              >
-                <CheckCircle className="mr-1 h-4 w-4" />
-                {post.isSolved ? '미해결로 변경' : '해결됨으로 변경'}
-              </Button>
-            )}
             <Button variant="outline" size="sm">
               <Flag className="mr-1 h-4 w-4" />
               신고
@@ -436,118 +417,57 @@ export default function QuestionDetailPage({
       {/* 댓글 섹션 */}
       <div className="mb-8">
         <h2 className="text-xl font-bold mb-4">
-          댓글 {post.commentCount}개
+          댓글 {post.comment_count}개
         </h2>
         
         {post.comments.length > 0 ? (
           <div className="space-y-4">
-            {CommunityService.organizeCommentsToTree(post.comments).map((comment) => (
+            {CommunityService.sortCommentsByDate(post.comments).map((comment) => (
               <Card key={comment.id}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <div className="flex items-start space-x-3">
-                    <Avatar className="h-8 w-8">
+                  <div className="flex items-center space-x-4">
+                    <Avatar>
                       <AvatarImage
-                        src={comment.author.profileImage}
-                        alt={comment.author.name}
+                        src={comment.user.profile_image}
+                        alt={comment.user.name}
                       />
                       <AvatarFallback>
-                        {getUserInitial(comment.author.name)}
+                        {getUserInitial(comment.user.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">
-                          {comment.isAnonymous ? '익명' : comment.author.name}
-                        </p>
-                        <Badge variant="outline" className="text-xs">
-                          일반
-                        </Badge>
-                      </div>
+                      <p className="text-sm font-medium">
+                        {comment.is_anonymous ? '익명' : comment.user.name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {getRelativeTime(comment.createdAt)}
+                        {getRelativeTime(comment.created_at)}
                       </p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCommentLike(comment.id)}
+                    >
+                      <ThumbsUp className="h-4 w-4 mr-1" />
+                      {comment.like_count}
+                    </Button>
+                  </div>
                 </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <p className="text-sm">{comment.content}</p>
+                <CardContent>
+                  <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
                 </CardContent>
-                
-                <CardFooter className="flex justify-between pt-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground"
-                    onClick={() => handleCommentLike(comment.id)}
-                  >
-                    <ThumbsUp className="mr-1 h-3 w-3" />
-                    추천 {comment.likeCount}
-                  </Button>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Reply className="mr-1 h-3 w-3" />
-                      답글
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Flag className="mr-1 h-3 w-3" />
-                      신고
-                    </Button>
-                  </div>
-                </CardFooter>
-
-                {/* 대댓글 */}
-                {comment.replies.length > 0 && (
-                  <div className="ml-8 border-t pt-4 space-y-3">
-                    {comment.replies.map((reply) => (
-                      <div key={reply.id} className="flex space-x-3">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage
-                            src={reply.author.profileImage}
-                            alt={reply.author.name}
-                          />
-                          <AvatarFallback className="text-xs">
-                            {getUserInitial(reply.author.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="text-xs font-medium">
-                              {reply.isAnonymous ? '익명' : reply.author.name}
-                            </p>
-                            <span className="text-xs text-muted-foreground">
-                              {getRelativeTime(reply.createdAt)}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mb-2">
-                            {reply.content}
-                          </p>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 px-2 text-xs"
-                              onClick={() => handleCommentLike(reply.id)}
-                            >
-                              <ThumbsUp className="mr-1 h-2 w-2" />
-                              {reply.likeCount}
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                              답글
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </Card>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <MessageCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
-            <p>아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</p>
+          <div className="text-center py-8">
+            <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">아직 댓글이 없습니다</h3>
+            <p className="text-muted-foreground">
+              첫 번째 댓글을 작성해보세요!
+            </p>
           </div>
         )}
       </div>

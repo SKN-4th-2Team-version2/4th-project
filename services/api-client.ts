@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { getSession } from 'next-auth/react';
 
 // API 기본 설정
 const API_BASE_URL =
@@ -7,9 +8,6 @@ const API_TIMEOUT = parseInt(
   process.env.NEXT_PUBLIC_API_TIMEOUT || '30000',
   10,
 );
-const TOKEN_STORAGE_KEY =
-  process.env.NEXT_PUBLIC_TOKEN_STORAGE_KEY ||
-  '1bb247a99a0f51d506109711452f30b12e274cf882fa46ab6f917fe16e203147';
 
 /**
  * 기본 API 클라이언트 클래스
@@ -29,40 +27,64 @@ class ApiClient {
 
     // 요청 인터셉터 설정
     this.client.interceptors.request.use(
-      (config) => {
-        // 브라우저 환경에서만 localStorage, sessionStorage 사용
-        if (typeof window !== 'undefined') {
-          // 로컬 스토리지 또는 세션 스토리지에서 토큰 가져오기
-          const localToken = localStorage.getItem(TOKEN_STORAGE_KEY);
-          const sessionToken = sessionStorage.getItem(TOKEN_STORAGE_KEY);
-          const token = localToken || sessionToken;
-
-          if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-          }
+      async (config) => {
+        const session = await getSession();
+        if (session?.djangoAccessToken) {
+          config.headers.Authorization = `Bearer ${session.djangoAccessToken}`;
         }
         return config;
       },
       (error) => {
         return Promise.reject(error);
-      },
+      }
     );
 
     // 응답 인터셉터 설정
     this.client.interceptors.response.use(
-      (response) => {
-        return response;
-      },
-      (error) => {
-        if (error.response?.status === 401) {
-          // 브라우저 환경에서만 localStorage 및 location 사용
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem(TOKEN_STORAGE_KEY);
-            window.location.href = '/login';
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+
+        // 토큰 만료로 인한 401 에러 처리
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            const session = await getSession();
+            if (session?.djangoRefreshToken) {
+              // 토큰 갱신 요청
+              const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/token/refresh/`,
+                {
+                  refresh_token: session.djangoRefreshToken,
+                }
+              );
+
+              if (response.data.success) {
+                // 새로운 토큰으로 요청 재시도
+                originalRequest.headers.Authorization = `Bearer ${response.data.data.access_token}`;
+                
+                // 토큰 저장
+                if (typeof window !== 'undefined') {
+                  const storageKey = process.env.NEXT_PUBLIC_TOKEN_STORAGE_KEY || 
+                    '1bb247a99a0f51d506109711452f30b12e274cf882fa46ab6f917fe16e203147';
+                  localStorage.setItem(storageKey, response.data.data.access_token);
+                }
+                
+                return this.client(originalRequest);
+              }
+            }
+          } catch (refreshError) {
+            console.error('토큰 갱신 실패:', refreshError);
+            // 토큰 갱신 실패 시 로그아웃 처리
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login';
+            }
           }
         }
+
         return Promise.reject(error);
-      },
+      }
     );
   }
 

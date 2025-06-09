@@ -3,7 +3,7 @@ import {
   Category,
   Post,
   PostDetail,
-  Comment,
+  CommunityComment,
   CommunityStats,
   CreatePostRequest,
   UpdatePostRequest,
@@ -54,19 +54,16 @@ export class CommunityService {
   // ========== 게시물 관련 ==========
 
   /**
-   * 게시물 목록 조회 (통합)
+   * 게시물 목록 조회
    */
   static async getPosts(params: PostsParams = {}): Promise<PostsResponse> {
     const queryParams = new URLSearchParams();
     
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
-    if (params.postType) queryParams.append('postType', params.postType);
-    if (params.categoryId) queryParams.append('categoryId', params.categoryId);
-    if (params.status) queryParams.append('status', params.status);
+    if (params.categoryId) queryParams.append('category_id', params.categoryId);
     if (params.search) queryParams.append('search', params.search);
-    if (params.isPinned !== undefined) queryParams.append('isPinned', params.isPinned.toString());
-    if (params.isSolved !== undefined) queryParams.append('isSolved', params.isSolved.toString());
+    if (params.postType) queryParams.append('post_type', params.postType);
 
     const url = `${this.BASE_PATH}/posts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return await apiClient.get<PostsResponse>(url);
@@ -86,7 +83,7 @@ export class CommunityService {
    */
   static async createPost(postData: CreatePostRequest): Promise<CreatePostResponse> {
     return await apiClient.post<CreatePostResponse>(
-      `${this.BASE_PATH}/posts`,
+      `${this.BASE_PATH}/posts/`,
       postData
     );
   }
@@ -133,7 +130,7 @@ export class CommunityService {
    */
   static async createComment(commentData: CreateCommentRequest): Promise<CreateCommentResponse> {
     return await apiClient.post<CreateCommentResponse>(
-      `${this.BASE_PATH}/comments`,
+      `${this.BASE_PATH}/comments/`,
       commentData
     );
   }
@@ -221,42 +218,12 @@ export class CommunityService {
   }
 
   /**
-   * 댓글을 트리 구조로 정렬
+   * 댓글을 생성일자순으로 정렬
    */
-  static organizeCommentsToTree(comments: Comment[]): Comment[] {
-    const commentMap = new Map<string, Comment>();
-    const rootComments: Comment[] = [];
-
-    // 모든 댓글을 맵에 저장하고 replies 배열 초기화
-    comments.forEach(comment => {
-      commentMap.set(comment.id, { ...comment, replies: [] });
-    });
-
-    // 부모-자식 관계 설정
-    comments.forEach(comment => {
-      const commentWithReplies = commentMap.get(comment.id)!;
-      
-      if (comment.parentId) {
-        const parent = commentMap.get(comment.parentId);
-        if (parent) {
-          parent.replies.push(commentWithReplies);
-        }
-      } else {
-        rootComments.push(commentWithReplies);
-      }
-    });
-
-    // 각 레벨에서 생성일자순 정렬
-    const sortComments = (comments: Comment[]): Comment[] => {
-      return comments
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-        .map(comment => ({
-          ...comment,
-          replies: sortComments(comment.replies)
-        }));
-    };
-
-    return sortComments(rootComments);
+  static sortCommentsByDate(comments: CommunityComment[]): CommunityComment[] {
+    return [...comments].sort((a, b) => 
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
   }
 
   /**
@@ -279,15 +246,14 @@ export class CommunityService {
   /**
    * 게시물을 타입별로 그룹화
    */
-  static groupPostsByType(posts: Post[]): Record<PostType, Post[]> {
-    const grouped = {
-      question: [],
-      story: [],
-      tip: []
-    } as Record<PostType, Post[]>;
+  static groupPostsByType(posts: Post[]): Record<string, Post[]> {
+    const grouped: Record<string, Post[]> = {};
 
     posts.forEach(post => {
-      grouped[post.postType].push(post);
+      if (!grouped[post.post_type]) {
+        grouped[post.post_type] = [];
+      }
+      grouped[post.post_type].push(post);
     });
 
     return grouped;
@@ -298,7 +264,7 @@ export class CommunityService {
    */
   static sortPostsByLatest(posts: Post[]): Post[] {
     return [...posts].sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
   }
 
@@ -307,8 +273,8 @@ export class CommunityService {
    */
   static sortPostsByPopularity(posts: Post[]): Post[] {
     return [...posts].sort((a, b) => {
-      const scoreA = a.viewCount + (a.likeCount * 2) + (a.commentCount * 3);
-      const scoreB = b.viewCount + (b.likeCount * 2) + (b.commentCount * 3);
+      const scoreA = a.view_count + (a.like_count * 2) + (a.comment_count * 3);
+      const scoreB = b.view_count + (b.like_count * 2) + (b.comment_count * 3);
       return scoreB - scoreA;
     });
   }
@@ -317,8 +283,8 @@ export class CommunityService {
    * 핀된 게시물과 일반 게시물 분리
    */
   static separatePinnedPosts(posts: Post[]): { pinned: Post[]; normal: Post[] } {
-    const pinned = posts.filter(post => post.isPinned);
-    const normal = posts.filter(post => !post.isPinned);
+    const pinned = posts.filter(post => post.is_pinned);
+    const normal = posts.filter(post => !post.is_pinned);
 
     return { pinned, normal };
   }
@@ -343,7 +309,7 @@ export class CommunityService {
     if (isSolved === undefined) return posts;
     
     return posts.filter(post => 
-      post.postType === 'question' && post.isSolved === isSolved
+      post.post_type === 'question' && post.is_solved === isSolved
     );
   }
 }

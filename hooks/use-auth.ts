@@ -1,64 +1,54 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthService from '@/services/auth-service';
+import { useSession } from 'next-auth/react';
 
 /**
  * 인증 상태를 관리하는 훅
  */
 export function useAuth() {
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   // 로그인 상태 확인
-  const isAuthenticated = AuthService.isAuthenticated();
+  const isAuthenticated = status === 'authenticated';
 
   // 로그인 필요 페이지에서 사용
   const requireAuth = () => {
     useEffect(() => {
-      if (!isAuthenticated) {
+      if (status === 'unauthenticated') {
         router.push('/login');
       }
-    }, [isAuthenticated]);
+    }, [status]);
   };
 
   // 로그인 상태에서 접근 불가 페이지에서 사용 (로그인, 회원가입 등)
   const redirectIfAuthenticated = (redirectTo: string = '/') => {
     useEffect(() => {
-      if (isAuthenticated) {
+      if (status === 'authenticated') {
         router.push(redirectTo);
       }
-    }, [isAuthenticated, redirectTo]);
+    }, [status, redirectTo]);
   };
 
   // 로그아웃
   const logout = async () => {
     try {
-      await AuthService.logout();
+      await fetch('/api/auth/signout', { method: 'POST' });
     } catch (error) {
-      console.error('로그아웃 API 호출 오류:', error);
+      console.error('로그아웃 처리 중 오류:', error);
     } finally {
-      // API 호출 실패해도 로컬 토큰은 제거
-      AuthService.removeToken();
-      AuthService.removeProvider();
       router.push('/login');
     }
   };
 
   // 현재 소셜 로그인 제공자 확인
   const getCurrentProvider = () => {
-    return AuthService.getCurrentProvider();
+    return session?.user?.auth_provider || null;
   };
 
   // 토큰 유효성 검사
   const checkTokenValidity = async () => {
-    if (isAuthenticated) {
-      const isValid = await AuthService.refreshTokenIfNeeded();
-      if (!isValid) {
-        // 토큰이 만료된 경우 로그아웃 처리
-        await logout();
-        return false;
-      }
-    }
-    return true;
+    return status === 'authenticated';
   };
 
   return {
@@ -67,7 +57,8 @@ export function useAuth() {
     redirectIfAuthenticated,
     logout,
     getCurrentProvider,
-    checkTokenValidity
+    checkTokenValidity,
+    session
   };
 }
 
@@ -75,13 +66,12 @@ export function useAuth() {
  * 사용자 정보를 관리하는 훅
  */
 export function useUser() {
-  // 추후 사용자 정보 상태 관리 로직 추가 가능
-  // 예: React Query, SWR, Zustand 등과 연동
+  const { data: session } = useSession();
   
   return {
-    // user: null, // 사용자 정보
-    // isLoading: false, // 로딩 상태
-    // error: null, // 에러 상태
-    // refetch: () => {}, // 재조회 함수
+    user: session?.user || null,
+    isLoading: !session,
+    error: null,
+    refetch: () => {},
   };
 }

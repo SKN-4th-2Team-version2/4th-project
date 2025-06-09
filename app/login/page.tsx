@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,23 +13,54 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2, Shield, Zap, Lock } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import AuthService from '@/services/auth-service';
+import { Shield, Zap, Lock, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
-  const { redirectIfAuthenticated } = useAuth();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  // 이미 로그인된 사용자는 메인 페이지로 리다이렉트
-  redirectIfAuthenticated();
+  useEffect(() => {
+    // 이미 로그인된 사용자는 메인 페이지로 리다이렉트
+    if (status === 'authenticated' && session?.djangoAccessToken) {
+      router.push('/');
+    }
+  }, [status, session, router]);
 
-  // 소셜 로그인 핸들러
-  const handleSocialLogin = (provider: 'google' | 'kakao' | 'naver') => {
-    setIsLoading(provider);
-    const socialLoginUrl = AuthService.getSocialLoginUrl(provider);
-    window.location.href = socialLoginUrl;
+  const handleSocialLogin = async (provider: 'google' | 'kakao' | 'naver') => {
+    try {
+      setIsLoading(provider);
+      const result = await signIn(provider, {
+        callbackUrl: '/',
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error('로그인에 실패했습니다. 다시 시도해주세요.');
+        console.error('로그인 실패:', result.error);
+        return;
+      }
+
+      if (result?.ok) {
+        router.push('/');
+      }
+    } catch (error) {
+      toast.error('로그인 중 오류가 발생했습니다.');
+      console.error('로그인 중 오류 발생:', error);
+    } finally {
+      setIsLoading(null);
+    }
   };
+
+  // 로딩 중이거나 이미 인증된 경우
+  if (status === 'loading' || status === 'authenticated') {
+    return (
+      <div className="container flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="container flex h-screen items-center justify-center">
@@ -126,15 +159,15 @@ export default function LoginPage() {
             <div className="grid gap-3">
               <div className="flex items-center space-x-2 text-sm">
                 <Shield className="h-4 w-4 text-green-600" />
-                <span className="text-muted-foreground">강화된 보안으로 안전한 로그인</span>
+                <span className="text-muted-foreground">NextAuth.js로 안전한 OAuth</span>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Zap className="h-4 w-4 text-blue-600" />
-                <span className="text-muted-foreground">빠르고 간편한 원클릭 로그인</span>
+                <span className="text-muted-foreground">편리한 세션 관리</span>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Lock className="h-4 w-4 text-purple-600" />
-                <span className="text-muted-foreground">비밀번호 관리 걱정 없음</span>
+                <span className="text-muted-foreground">JWT 토큰 기반 API 인증</span>
               </div>
             </div>
           </CardContent>

@@ -1,18 +1,9 @@
 'use client';
 
-import type React from 'react';
-
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -21,165 +12,258 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import Link from 'next/link';
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
+import CommunityService from '@/services/community-service';
+import type { Category, PostImage } from '@/types/community';
+import { X, Upload } from 'lucide-react';
 
 export default function NewStoryPage() {
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const router = useRouter();
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [images, setImages] = useState<PostImage[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && tagInput.trim() !== '') {
-      e.preventDefault();
-      if (!tags.includes(tagInput.trim()) && tags.length < 5) {
-        setTags([...tags, tagInput.trim()]);
-        setTagInput('');
+  // 카테고리 로드
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await CommunityService.getCategories({ postType: 'story' });
+        if (response.success) {
+          setCategories(response.data);
+          if (response.data.length > 0) {
+            setCategoryId(response.data[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+        toast({
+          title: '카테고리 로드 실패',
+          description: '카테고리를 불러오는데 실패했습니다.',
+          variant: 'destructive',
+        });
       }
+    };
+
+    loadCategories();
+  }, []);
+
+  // 이미지 파일 처리
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + images.length > 5) {
+      toast({
+        title: '이미지 개수 초과',
+        description: '최대 5개의 이미지만 첨부할 수 있습니다.',
+        variant: 'destructive',
+      });
+      return;
     }
+
+    const newImages = files.map((file, index) => ({
+      id: `temp-${Date.now()}-${index}`,
+      imageUrl: URL.createObjectURL(file),
+      altText: file.name,
+      order: images.length + index,
+    }));
+
+    setImages([...images, ...newImages]);
+    setImageFiles([...imageFiles, ...files]);
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
+  // 이미지 제거
+  const handleRemoveImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+    setImageFiles(imageFiles.filter((_, i) => i !== index));
   };
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnailPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  // 게시글 작성
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title.trim()) {
+      toast({
+        title: '제목을 입력해주세요',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      toast({
+        title: '내용을 입력해주세요',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!categoryId) {
+      toast({
+        title: '카테고리를 선택해주세요',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // 이미지 업로드
+      const uploadedImages = await Promise.all(
+        imageFiles.map(async (file, index) => {
+          const formData = new FormData();
+          formData.append('image', file);
+          const response = await CommunityService.uploadImage(formData);
+          return {
+            imageUrl: response.data.url,
+            altText: file.name,
+            order: index,
+          };
+        })
+      );
+
+      const response = await CommunityService.createPost({
+        post_type: 'story',
+        category_id: categoryId,
+        title,
+        content,
+        status: 'published',
+        isAnonymous,
+        images: uploadedImages,
+      });
+
+      if (response.success) {
+        toast({
+          title: '게시글이 작성되었습니다',
+        });
+        router.push('/community/stories');
+      }
+    } catch (error) {
+      console.error('게시글 작성 실패:', error);
+      toast({
+        title: '게시글 작성 실패',
+        description: '게시글을 작성하는데 실패했습니다.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">육아 이야기 작성하기</h1>
-        <p className="text-muted-foreground">
-          다른 부모님들과 육아 경험을 공유해보세요.
-        </p>
-      </div>
-
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle>새 이야기</CardTitle>
-          <CardDescription>
-            육아 과정에서 경험한 특별한 순간, 고민, 성장 이야기를 공유해주세요.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">제목</Label>
-            <Input id="title" placeholder="이야기의 제목을 입력하세요" />
-          </div>
-
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">육아 이야기 작성</h1>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="category">카테고리</Label>
-            <Select>
+            <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger>
                 <SelectValue placeholder="카테고리 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daily">일상공유</SelectItem>
-                <SelectItem value="growth">성장일기</SelectItem>
-                <SelectItem value="travel">여행</SelectItem>
-                <SelectItem value="education">교육</SelectItem>
-                <SelectItem value="dad">아빠육아</SelectItem>
-                <SelectItem value="mom">엄마육아</SelectItem>
-                <SelectItem value="etc">기타</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="thumbnail">대표 이미지</Label>
-            <div className="flex items-center gap-4">
-              <Input
-                id="thumbnail"
-                type="file"
-                accept="image/*"
-                onChange={handleThumbnailChange}
-              />
-              {thumbnailPreview && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setThumbnailPreview(null)}
-                >
-                  삭제
-                </Button>
-              )}
-            </div>
-            {thumbnailPreview && (
-              <div className="mt-2 aspect-video w-full max-w-md overflow-hidden rounded-md border">
-                <img
-                  src={thumbnailPreview || '/placeholder.svg'}
-                  alt="썸네일 미리보기"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">
-              이야기를 대표하는 이미지를 업로드해주세요. (선택사항)
-            </p>
+            <Label htmlFor="title">제목</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="제목을 입력하세요"
+              maxLength={200}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="content">내용</Label>
             <Textarea
               id="content"
-              placeholder="이야기 내용을 작성해주세요"
-              rows={15}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="내용을 입력하세요"
+              className="min-h-[300px]"
+              maxLength={10000}
             />
-            <p className="text-xs text-muted-foreground">
-              경험, 감정, 배운 점 등을 자유롭게 공유해주세요.
-            </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">태그</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  {tag}
-                  <X
-                    size={14}
-                    className="cursor-pointer"
-                    onClick={() => handleRemoveTag(tag)}
+            <Label>이미지 첨부</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {images.map((image, index) => (
+                <div key={image.id} className="relative aspect-square group">
+                  <img
+                    src={image.imageUrl}
+                    alt={image.altText}
+                    className="w-full h-full object-cover rounded-lg"
                   />
-                </Badge>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               ))}
+              {images.length < 5 && (
+                <label className="aspect-square border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Upload className="h-6 w-6" />
+                    <span className="text-sm">이미지 추가</span>
+                  </div>
+                </label>
+              )}
             </div>
-            <Input
-              id="tags"
-              placeholder="태그를 입력하고 Enter를 누르세요 (최대 5개)"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-              disabled={tags.length >= 5}
-            />
             <p className="text-xs text-muted-foreground">
-              관련 키워드를 태그로 추가하면 다른 부모님들이 이야기를 찾기
-              쉬워집니다.
+              최대 5개의 이미지를 첨부할 수 있습니다.
             </p>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-between border-t px-6 py-4">
-          <Button variant="outline" asChild>
-            <Link href="/community/stories">취소</Link>
-          </Button>
-          <Button>이야기 등록하기</Button>
-        </CardFooter>
-      </Card>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="anonymous"
+              checked={isAnonymous}
+              onCheckedChange={setIsAnonymous}
+            />
+            <Label htmlFor="anonymous">익명으로 작성</Label>
+          </div>
+
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isSubmitting}
+            >
+              취소
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? '작성 중...' : '작성하기'}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

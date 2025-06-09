@@ -15,7 +15,6 @@ import {
   MessageCircle, 
   Eye, 
   ThumbsUp, 
-  TrendingUp, 
   Users, 
   PenTool,
   HelpCircle,
@@ -42,7 +41,7 @@ export default function CommunityPage() {
       
       try {
         // 병렬로 데이터 로드
-        const [categoriesRes, statsRes, ...postsRes] = await Promise.all([
+        const [categoriesRes, statsRes, questionPostsRes, storyPostsRes, tipPostsRes] = await Promise.all([
           CommunityService.getCategories(),
           CommunityService.getStats(),
           CommunityService.getPosts({ postType: 'question', limit: 5 }),
@@ -59,15 +58,30 @@ export default function CommunityPage() {
         }
 
         // 게시물 데이터 설정
-        if (postsRes[0].success) {
-          setPosts(prev => ({ ...prev, question: postsRes[0].data.posts || [] }));
+        if (questionPostsRes.success) {
+          setPosts(prev => ({
+            ...prev,
+            question: questionPostsRes.data || []
+          }));
         }
-        if (postsRes[1].success) {
-          setPosts(prev => ({ ...prev, story: postsRes[1].data.posts || [] }));
+        if (storyPostsRes.success) {
+          setPosts(prev => ({
+            ...prev,
+            story: storyPostsRes.data || []
+          }));
         }
-        if (postsRes[2].success) {
-          setPosts(prev => ({ ...prev, tip: postsRes[2].data.posts || [] }));
+        if (tipPostsRes.success) {
+          setPosts(prev => ({
+            ...prev,
+            tip: tipPostsRes.data || []
+          }));
         }
+
+        console.log('게시글 데이터 로드 상태:', {
+          question: questionPostsRes.success ? questionPostsRes.data?.length || 0 : 0,
+          story: storyPostsRes.success ? storyPostsRes.data?.length || 0 : 0,
+          tip: tipPostsRes.success ? tipPostsRes.data?.length || 0 : 0
+        });
 
       } catch (error) {
         console.error('커뮤니티 데이터 로드 실패:', error);
@@ -175,7 +189,7 @@ export default function CommunityPage() {
               <HelpCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts.questions}</div>
+              <div className="text-2xl font-bold">{stats.totalPosts?.questions || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -184,7 +198,7 @@ export default function CommunityPage() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts.stories}</div>
+              <div className="text-2xl font-bold">{stats.totalPosts?.stories || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -193,7 +207,7 @@ export default function CommunityPage() {
               <Lightbulb className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts.tips}</div>
+              <div className="text-2xl font-bold">{stats.totalPosts?.tips || 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -202,35 +216,10 @@ export default function CommunityPage() {
               <MessageCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalComments}</div>
+              <div className="text-2xl font-bold">{stats.totalComments || 0}</div>
             </CardContent>
           </Card>
         </div>
-      )}
-
-      {/* 인기 카테고리 */}
-      {stats && stats.popularCategories.length > 0 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              인기 카테고리
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {stats.popularCategories.slice(0, 6).map((category, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                >
-                  {category.name} ({category.count})
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       )}
 
       {/* 게시물 탭 섹션 */}
@@ -270,7 +259,7 @@ export default function CommunityPage() {
                               {CommunityService.getPostTypeLabel('question')}
                             </Badge>
                             <Badge variant="outline">{post.category.name}</Badge>
-                            {post.isSolved && <Badge variant="default">해결됨</Badge>}
+                            {post.is_solved && <Badge variant="default">해결됨</Badge>}
                           </div>
                           <Link 
                             href={`/community/questions/${post.id}`}
@@ -284,21 +273,21 @@ export default function CommunityPage() {
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              {post.author.name}
+                              {post.user.name}
                             </span>
                             <span className="flex items-center gap-1">
                               <Eye className="h-3 w-3" />
-                              {post.viewCount}
+                              {post.view_count}
                             </span>
                             <span className="flex items-center gap-1">
                               <MessageCircle className="h-3 w-3" />
-                              {post.commentCount}
+                              {post.comment_count}
                             </span>
                             <span className="flex items-center gap-1">
                               <ThumbsUp className="h-3 w-3" />
-                              {post.likeCount}
+                              {post.like_count}
                             </span>
-                            <span>{getRelativeTime(post.createdAt)}</span>
+                            <span>{getRelativeTime(post.created_at)}</span>
                           </div>
                         </div>
                       </div>
@@ -356,21 +345,21 @@ export default function CommunityPage() {
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              {post.author.name}
+                              {post.user.name}
                             </span>
                             <span className="flex items-center gap-1">
                               <Eye className="h-3 w-3" />
-                              {post.viewCount}
+                              {post.view_count}
                             </span>
                             <span className="flex items-center gap-1">
                               <MessageCircle className="h-3 w-3" />
-                              {post.commentCount}
+                              {post.comment_count}
                             </span>
                             <span className="flex items-center gap-1">
                               <ThumbsUp className="h-3 w-3" />
-                              {post.likeCount}
+                              {post.like_count}
                             </span>
-                            <span>{getRelativeTime(post.createdAt)}</span>
+                            <span>{getRelativeTime(post.created_at)}</span>
                           </div>
                         </div>
                       </div>
@@ -428,21 +417,21 @@ export default function CommunityPage() {
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              {post.author.name}
+                              {post.user.name}
                             </span>
                             <span className="flex items-center gap-1">
                               <Eye className="h-3 w-3" />
-                              {post.viewCount}
+                              {post.view_count}
                             </span>
                             <span className="flex items-center gap-1">
                               <MessageCircle className="h-3 w-3" />
-                              {post.commentCount}
+                              {post.comment_count}
                             </span>
                             <span className="flex items-center gap-1">
                               <ThumbsUp className="h-3 w-3" />
-                              {post.likeCount}
+                              {post.like_count}
                             </span>
-                            <span>{getRelativeTime(post.createdAt)}</span>
+                            <span>{getRelativeTime(post.created_at)}</span>
                           </div>
                         </div>
                       </div>

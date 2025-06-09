@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 import CommunityService from '@/services/community-service';
-import type { Post, Category, PostsParams } from '@/types/community';
+import type { Post, Category, PostsParams, PostsResponse } from '@/types/community';
 import {
   Select,
   SelectContent,
@@ -63,23 +63,23 @@ export default function QuestionsPage() {
         categoryId: params.categoryId !== 'all' ? params.categoryId : undefined,
         search: params.search || undefined,
         ...params
-      });
+      }) as PostsResponse;
 
       if (response.success) {
-        let newPosts = response.data.posts || [];
+        let newPosts = response.data;
         
         // 클라이언트 사이드 정렬 (서버에서 지원하지 않는 경우)
         if (sortBy === 'popular') {
           newPosts = CommunityService.sortPostsByPopularity(newPosts);
         } else if (sortBy === 'views') {
-          newPosts = [...newPosts].sort((a, b) => b.viewCount - a.viewCount);
+          newPosts = [...newPosts].sort((a, b) => b.view_count - a.view_count);
         } else if (sortBy === 'replies') {
-          newPosts = [...newPosts].sort((a, b) => b.commentCount - a.commentCount);
+          newPosts = [...newPosts].sort((a, b) => b.comment_count - a.comment_count);
         }
         
         setPosts(newPosts);
-        setTotalPages(response.data.pagination?.pages || 1);
-        setTotal(response.data.pagination?.total || 0);
+        setTotalPages(response.pagination.total_pages);
+        setTotal(response.pagination.count);
       }
     } catch (error) {
       console.error('게시물 로드 실패:', error);
@@ -312,31 +312,31 @@ export default function QuestionsPage() {
                 <div className="flex items-center space-x-4">
                   <Avatar>
                     <AvatarImage
-                      src={post.author.profileImage}
-                      alt={post.author.name}
+                      src={post.user.profile_image}
+                      alt={post.user.name}
                     />
                     <AvatarFallback>
-                      {getUserInitial(post.author.name)}
+                      {getUserInitial(post.user.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="text-sm font-medium">
-                      {post.isAnonymous ? '익명' : post.author.name}
+                      {post.is_anonymous ? '익명' : post.user.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {getRelativeTime(post.createdAt)}
+                      {getRelativeTime(post.created_at)}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{post.category.name}</Badge>
-                  {post.isSolved && (
+                  {post.is_solved && (
                     <Badge className="bg-green-100 text-green-800 border-green-200">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       해결됨
                     </Badge>
                   )}
-                  {post.isPinned && (
+                  {post.is_pinned && (
                     <Badge variant="secondary">📌 고정</Badge>
                   )}
                 </div>
@@ -360,15 +360,15 @@ export default function QuestionsPage() {
                 <div className="flex space-x-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" />
-                    {post.viewCount}
+                    {post.view_count}
                   </span>
                   <span className="flex items-center gap-1">
                     <MessageCircle className="h-3 w-3" />
-                    {post.commentCount}
+                    {post.comment_count}
                   </span>
                   <span className="flex items-center gap-1">
                     <ThumbsUp className="h-3 w-3" />
-                    {post.likeCount}
+                    {post.like_count}
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" asChild>

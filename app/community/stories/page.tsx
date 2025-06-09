@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,7 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from '@/hooks/use-toast';
+import CommunityService from '@/services/community-service';
+import type { Post, Category, PostsParams, PostsResponse } from '@/types/community';
 import {
   Select,
   SelectContent,
@@ -17,357 +25,391 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { 
+  Search, 
+  Eye, 
+  MessageCircle, 
+  ThumbsUp, 
+  PenTool,
+  Clock,
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 
 export default function StoriesPage() {
-  // 육아 이야기 목록 데이터 (실제로는 API에서 가져올 것)
-  const stories = [
-    {
-      id: 1,
-      title: '첫 걸음마의 감동, 그 순간을 기록합니다',
-      content:
-        '우리 아이가 드디어 첫 걸음마를 떼었어요. 그동안 기다림의 시간과 첫 걸음마의 감동적인 순간, 그리고 그 이후 아이의 변화에 대한 이야기를 나누고 싶어요.',
-      author: {
-        name: '행복한맘',
-        image: '/abstract-profile.png',
-      },
-      category: '성장일기',
-      tags: ['첫걸음마', '성장기록', '감동순간'],
-      comments: 12,
-      views: 245,
-      likes: 38,
-      created: '3일 전',
-      thumbnail: '/placeholder.svg?key=hmch8',
-    },
-    {
-      id: 2,
-      title: '육아 번아웃을 극복한 나만의 방법',
-      content:
-        '24시간이 모자랄 정도로 바쁜 육아 생활에 지쳐 번아웃을 경험했어요. 그 시간을 어떻게 극복했는지, 그리고 지금은 어떻게 나만의 시간을 만들어 가고 있는지 공유합니다.',
-      author: {
-        name: '회복중인맘',
-        image: '/abstract-profile.png',
-      },
-      category: '일상공유',
-      tags: ['번아웃', '자기관리', '육아스트레스'],
-      comments: 24,
-      views: 412,
-      likes: 67,
-      created: '1주일 전',
-      thumbnail: '/placeholder.svg?key=9xya8',
-    },
-    {
-      id: 3,
-      title: '쌍둥이 육아 1년차, 웃픈 에피소드 모음',
-      content:
-        '쌍둥이를 키우며 겪은 다양한 에피소드들을 공유합니다. 힘들지만 웃음이 나는 순간들, 두 배로 커지는 사랑과 두 배로 커지는 고민까지, 쌍둥이 부모만 알 수 있는 특별한 이야기들입니다.',
-      author: {
-        name: '쌍둥이아빠',
-        image: '/abstract-profile.png',
-      },
-      category: '일상공유',
-      tags: ['쌍둥이', '육아에피소드', '육아웃픔'],
-      comments: 18,
-      views: 356,
-      likes: 45,
-      created: '2주일 전',
-      thumbnail: '/placeholder.svg?key=imuoe',
-    },
-    {
-      id: 4,
-      title: '아이와 함께한 제주도 여행 후기',
-      content:
-        '5살 아이와 함께 다녀온 제주도 여행 이야기를 공유합니다. 아이와 함께하기 좋은 숙소, 맛집, 관광지 정보와 여행 팁, 그리고 여행을 통해 아이가 얼마나 성장했는지에 대한 이야기입니다.',
-      author: {
-        name: '여행좋아맘',
-        image: '/abstract-profile.png',
-      },
-      category: '여행',
-      tags: ['가족여행', '제주도', '아이동반여행'],
-      comments: 15,
-      views: 289,
-      likes: 42,
-      created: '3주일 전',
-      thumbnail: '/placeholder.svg?key=tiuyu',
-    },
-    {
-      id: 5,
-      title: '아빠의 육아 참여가 가져온 변화들',
-      content:
-        '육아에 적극적으로 참여하게 된 아빠의 시점에서 바라본 가족의 변화와 아이와의 관계 발전에 대한 이야기입니다. 처음에는 어색했지만 지금은 없어서는 안 될 소중한 시간이 된 육아 참여 경험을 나눕니다.',
-      author: {
-        name: '육아대디',
-        image: '/abstract-profile.png',
-      },
-      category: '아빠육아',
-      tags: ['아빠육아', '공동육아', '육아참여'],
-      comments: 22,
-      views: 378,
-      likes: 56,
-      created: '1개월 전',
-      thumbnail: '/placeholder.svg?key=iwd0f',
-    },
-    {
-      id: 6,
-      title: '아이의 첫 유치원 적응기',
-      content:
-        '처음으로 유치원에 입학한 우리 아이의 적응 과정과 그 과정에서 부모로서 느낀 감정들, 그리고 아이의 성장을 지켜본 이야기를 공유합니다. 분리불안을 겪는 아이와 부모가 함께 성장한 시간입니다.',
-      author: {
-        name: '유치원맘',
-        image: '/abstract-profile.png',
-      },
-      category: '교육',
-      tags: ['유치원적응', '분리불안', '성장이야기'],
-      comments: 16,
-      views: 267,
-      likes: 39,
-      created: '1개월 전',
-      thumbnail: '/placeholder-vvk3b.png',
-    },
-  ];
+  const { isAuthenticated } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [sortBy, setSortBy] = useState('recent');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const categories = [
-    { value: 'all', label: '전체' },
-    { value: 'daily', label: '일상공유' },
-    { value: 'growth', label: '성장일기' },
-    { value: 'travel', label: '여행' },
-    { value: 'education', label: '교육' },
-    { value: 'dad', label: '아빠육아' },
-    { value: 'mom', label: '엄마육아' },
-  ];
+  // 게시물 로드 함수
+  const loadPosts = useCallback(async (params: PostsParams = {}) => {
+    setIsLoading(true);
 
-  const sortOptions = [
-    { value: 'recent', label: '최신순' },
-    { value: 'popular', label: '인기순' },
-    { value: 'views', label: '조회순' },
-    { value: 'comments', label: '댓글 많은 순' },
-  ];
+    try {
+      const response = await CommunityService.getPosts({
+        postType: 'story',
+        page: params.page || 1,
+        limit: 10,
+        categoryId: params.categoryId !== 'all' ? params.categoryId : undefined,
+        search: params.search || undefined,
+        ...params
+      });
+
+      if (response.success) {
+        let newPosts = response.data;
+        
+        // 클라이언트 사이드 정렬 (서버에서 지원하지 않는 경우)
+        if (sortBy === 'popular') {
+          newPosts = CommunityService.sortPostsByPopularity(newPosts);
+        } else if (sortBy === 'views') {
+          newPosts = [...newPosts].sort((a, b) => b.view_count - a.view_count);
+        } else if (sortBy === 'replies') {
+          newPosts = [...newPosts].sort((a, b) => b.comment_count - a.comment_count);
+        }
+        
+        setPosts(newPosts);
+        setTotalPages(response.pagination.total_pages);
+        setTotal(response.pagination.count);
+      }
+    } catch (error) {
+      console.error('게시물 로드 실패:', error);
+      toast({
+        title: '게시물 로드 실패',
+        description: '게시물을 불러오는데 실패했습니다.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sortBy]);
+
+  // 카테고리 로드
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await CommunityService.getCategories({ postType: 'story' });
+        if (response.success) {
+          setCategories([
+            { id: 'all', name: '전체', description: '', post_type: 'story', color: '', icon: '', order: 0, isActive: true },
+            ...response.data
+          ]);
+        }
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // 게시물 로드
+  useEffect(() => {
+    const params: PostsParams = {
+      page: currentPage,
+      categoryId: selectedCategory,
+      search: searchQuery || undefined,
+    };
+
+    loadPosts(params);
+  }, [selectedCategory, searchQuery, sortBy, currentPage, loadPosts]);
+
+  // 검색 핸들러
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 상대 시간 계산
+  const getRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return '방금 전';
+    if (diffInHours < 24) return `${diffInHours}시간 전`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}일 전`;
+    
+    return date.toLocaleDateString();
+  };
+
+  // 사용자 이름 첫 글자
+  const getUserInitial = (name: string) => {
+    return name.charAt(0).toUpperCase();
+  };
+
+  // 페이지네이션 컴포넌트
+  const Pagination = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        {pageNumbers.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => handlePageChange(page)}
+            className="w-8 h-8"
+          >
+            {page}
+          </Button>
+        ))}
+        
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  };
+
+  if (isLoading && posts.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* 헤더 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">육아 이야기</h1>
           <p className="text-muted-foreground">
-            부모님들의 다양한 육아 경험담을 공유하는 공간입니다.
+            다른 부모님들의 다양한 육아 경험담을 공유하는 공간입니다. (총 {total}개)
           </p>
         </div>
-        <Button asChild>
-          <Link href="/community/stories/new">글쓰기</Link>
-        </Button>
+        {isAuthenticated && (
+          <Button asChild>
+            <Link href="/community/stories/new">
+              <PenTool className="mr-2 h-4 w-4" />
+              글쓰기
+            </Link>
+          </Button>
+        )}
       </div>
 
-      <div className="mb-8">
-        <Tabs defaultValue="all" className="w-full">
+      {/* 카테고리 탭 */}
+      <div className="mb-6">
+        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
           <TabsList className="w-full max-w-full overflow-auto">
             {categories.map((category) => (
-              <TabsTrigger key={category.value} value={category.value}>
-                {category.label}
+              <TabsTrigger key={category.id} value={category.id}>
+                {category.name}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
       </div>
 
+      {/* 검색 및 필터 */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+        <form onSubmit={handleSearch} className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="검색어를 입력하세요"
+            placeholder="이야기 검색하기..."
             className="w-full pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-        <Select defaultValue="recent">
-          <SelectTrigger className="w-full md:w-[150px]">
-            <SelectValue placeholder="정렬 기준" />
-          </SelectTrigger>
-          <SelectContent>
-            {sortOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stories.map((story) => (
-          <Card key={story.id} className="overflow-hidden flex flex-col">
-            <div className="aspect-video w-full overflow-hidden">
-              <img
-                src={story.thumbnail || '/placeholder.svg'}
-                alt={story.title}
-                className="w-full h-full object-cover transition-transform hover:scale-105"
-              />
-            </div>
-            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <div className="flex items-center space-x-4">
-                <Avatar>
-                  <AvatarImage
-                    src={story.author.image || '/placeholder.svg'}
-                    alt={story.author.name}
-                  />
-                  <AvatarFallback>
-                    {story.author.name.slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{story.author.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {story.created}
-                  </p>
+        </form>
+        
+        <div className="flex gap-4">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="정렬 기준" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  최신순
                 </div>
-              </div>
-              <Badge variant="outline">{story.category}</Badge>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <Link
-                href={`/community/stories/${story.id}`}
-                className="hover:underline"
-              >
-                <h3 className="font-bold text-lg mb-2">{story.title}</h3>
-              </Link>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                {story.content}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {story.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
-              <div className="flex space-x-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                  {story.views}
-                </span>
-                <span className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                  {story.comments}
-                </span>
-                <span className="flex items-center gap-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M7 10v12" />
-                    <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z" />
-                  </svg>
-                  {story.likes}
-                </span>
-              </div>
-            </CardFooter>
-          </Card>
-        ))}
+              </SelectItem>
+              <SelectItem value="popular">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  인기순
+                </div>
+              </SelectItem>
+              <SelectItem value="views">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  조회순
+                </div>
+              </SelectItem>
+              <SelectItem value="replies">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  댓글 많은 순
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <nav className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" disabled>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            <span className="sr-only">이전 페이지</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 w-8"
-            aria-current="page"
-          >
-            1
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            2
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            3
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            4
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8">
-            5
-          </Button>
-          <Button variant="outline" size="icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-            <span className="sr-only">다음 페이지</span>
-          </Button>
-        </nav>
+      {/* 게시물 목록 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {posts.length > 0 ? (
+          posts.map((post) => (
+            <Card key={post.id} className="overflow-hidden flex flex-col">
+              <div className="aspect-video w-full overflow-hidden">
+                <img
+                  src={post.thumbnail || '/placeholder.svg'}
+                  alt={post.title}
+                  className="w-full h-full object-cover transition-transform hover:scale-105"
+                />
+              </div>
+              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                <div className="flex items-center space-x-4">
+                  <Avatar>
+                    <AvatarImage
+                      src={post.user.profile_image}
+                      alt={post.user.name}
+                    />
+                    <AvatarFallback>
+                      {getUserInitial(post.user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {post.is_anonymous ? '익명' : post.user.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {getRelativeTime(post.created_at)}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline">{post.category.name}</Badge>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <Link
+                  href={`/community/stories/${post.id}`}
+                  className="hover:underline"
+                >
+                  <h3 className="font-bold text-lg mb-2">{post.title}</h3>
+                </Link>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                  {post.content}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {post.tags?.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
+                <div className="flex space-x-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-3 w-3" />
+                    {post.view_count}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageCircle className="h-3 w-3" />
+                    {post.comment_count}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <ThumbsUp className="h-3 w-3" />
+                    {post.like_count}
+                  </span>
+                </div>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <MessageCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">
+              {searchQuery ? '검색 결과가 없습니다' : '아직 이야기가 없습니다'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery 
+                ? '다른 검색어로 시도해보세요.' 
+                : '첫 번째 이야기를 올려보세요!'
+              }
+            </p>
+            {isAuthenticated && !searchQuery && (
+              <Button asChild>
+                <Link href="/community/stories/new">글쓰기</Link>
+              </Button>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination />
+        </div>
+      )}
+
+      {/* 로딩 오버레이 */}
+      {isLoading && posts.length > 0 && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="bg-background p-4 rounded-lg shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <span>로딩 중...</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

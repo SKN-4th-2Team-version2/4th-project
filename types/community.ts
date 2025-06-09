@@ -16,7 +16,7 @@ export interface Category {
   id: string;
   name: string;
   description: string;
-  postType: PostType;
+  post_type: string;
   color: string;
   icon: string;
   order: number;
@@ -39,53 +39,55 @@ export interface PostImage {
 }
 
 // 댓글 타입
-export interface Comment {
+export interface CommunityComment {
   id: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    profile_image: string;
+    auth_provider: string;
+    created_at: string;
+    updated_at: string;
+  };
   content: string;
-  author: Author;
-  likeCount: number;
-  isAnonymous: boolean;
-  depth: number;
-  parentId: string | null;
-  replies: Comment[];
-  createdAt: string;
+  like_count: number;
+  is_anonymous: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // 게시물 타입
 export interface Post {
-  id: string;
-  postType: PostType;
+  id: number;
   title: string;
   content: string;
-  category: {
-    id: string;
-    name: string;
-    color: string;
-  };
-  author: Author;
-  status: PostStatus;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  isAnonymous: boolean;
-  isSolved?: boolean; // question 타입에만 적용
-  isPinned: boolean;
-  images: string[] | PostImage[]; // 목록에서는 string[], 상세에서는 PostImage[]
-  createdAt: string;
-  updatedAt: string;
+  user: User;
+  category: Category;
+  post_type: string;
+  is_anonymous: boolean;
+  is_pinned: boolean;
+  is_solved: boolean;
+  view_count: number;
+  comment_count: number;
+  like_count: number;
+  created_at: string;
+  updated_at: string;
+  thumbnail?: string;
+  tags?: string[];
 }
 
 // 게시물 상세 (댓글 포함)
-export interface PostDetail extends Post {
-  comments: Comment[];
-  isLiked: boolean;
+export interface PostDetail extends Omit<Post, 'images'> {
+  comments: CommunityComment[];
+  is_liked: boolean;
   images: PostImage[];
 }
 
 // 게시물 생성 요청
 export interface CreatePostRequest {
-  postType: PostType;
-  categoryId: string;
+  post_type: PostType;
+  category_id: string;
   title: string;
   content: string;
   status: PostStatus;
@@ -118,10 +120,9 @@ export interface SolvePostRequest {
 
 // 댓글 생성 요청
 export interface CreateCommentRequest {
-  postId: string;
+  post_id: string;
   content: string;
-  parentId?: string;
-  isAnonymous: boolean;
+  is_anonymous: boolean;
 }
 
 // 댓글 수정 요청
@@ -137,8 +138,8 @@ export interface ToggleLikeRequest {
 
 // 좋아요 토글 응답
 export interface ToggleLikeResponse {
-  isLiked: boolean;
-  likeCount: number;
+  is_liked: boolean;
+  like_count: number;
 }
 
 // 커뮤니티 통계
@@ -164,12 +165,9 @@ export interface CommunityStats {
 export interface PostsParams {
   page?: number;
   limit?: number;
-  postType?: PostType;
   categoryId?: string;
-  status?: PostStatus;
   search?: string;
-  isPinned?: boolean;
-  isSolved?: boolean;
+  postType?: string;
 }
 
 // 카테고리 목록 조회 파라미터
@@ -179,12 +177,22 @@ export interface CategoriesParams {
 
 // API 응답 타입들
 export type CategoriesResponse = MapaderApiResponse<Category[]>;
-export type PostsResponse = PaginatedResponse<Post>;
+export interface PostsResponse {
+  success: boolean;
+  data: Post[];
+  pagination: {
+    total_pages: number;
+    count: number;
+    current_page: number;
+    next: string | null;
+    previous: string | null;
+  };
+}
 export type PostDetailResponse = MapaderApiResponse<PostDetail>;
 export type CreatePostResponse = MapaderApiResponse<Post>;
 export type UpdatePostResponse = MapaderApiResponse<Post>;
-export type CreateCommentResponse = MapaderApiResponse<Comment>;
-export type UpdateCommentResponse = MapaderApiResponse<Comment>;
+export type CreateCommentResponse = MapaderApiResponse<CommunityComment>;
+export type UpdateCommentResponse = MapaderApiResponse<CommunityComment>;
 export type ToggleLikeApiResponse = MapaderApiResponse<ToggleLikeResponse>;
 export type CommunityStatsResponse = MapaderApiResponse<CommunityStats>;
 
@@ -201,3 +209,24 @@ export const POST_STATUS_LABELS: Record<PostStatus, string> = {
   draft: '임시저장',
   hidden: '숨김'
 };
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  profile_image: string;
+  auth_provider: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Pagination {
+  count: number;
+  page: number;
+  total_pages: number;
+  page_size: number;
+  has_next: boolean;
+  has_previous: boolean;
+  next: string | null;
+  previous: string | null;
+}

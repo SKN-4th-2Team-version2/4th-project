@@ -196,8 +196,8 @@ export default function NewQuestionPage() {
     
     try {
       const postData: CreatePostRequest = {
-        postType: 'question',
-        categoryId: formData.categoryId,
+        post_type: 'question',
+        category_id: formData.categoryId,
         title: formData.title.trim(),
         content: formData.content.trim(),
         status: formData.status,
@@ -245,8 +245,8 @@ export default function NewQuestionPage() {
     
     try {
       const draftData: CreatePostRequest = {
-        postType: 'question',
-        categoryId: formData.categoryId || categories[0]?.id || '',
+        post_type: 'question',
+        category_id: formData.categoryId || categories[0]?.id || '',
         title: formData.title.trim() || '제목 없음',
         content: formData.content.trim() || '내용 없음',
         status: 'draft',

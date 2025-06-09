@@ -1,0 +1,56 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+
+// 인증이 필요하지 않은 경로 목록
+const publicPaths = [
+  '/auth/signin',
+  '/auth/signup',
+  '/auth/error',
+  '/api/auth',
+  '/_next',
+  '/favicon.ico',
+];
+
+export async function middleware(request: NextRequest) {
+  const token = await getToken({ req: request });
+  const { pathname } = request.nextUrl;
+
+  // 정적 파일이나 API 라우트는 건너뛰기
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/static/') ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
+  }
+
+  // 공개 경로는 접근 허용
+  if (publicPaths.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
+
+  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
+  if (!token) {
+    const url = new URL('/auth/signin', request.url);
+    url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
+
+// 미들웨어를 적용할 경로 설정
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};

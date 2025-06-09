@@ -1,10 +1,9 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import AuthService from '@/services/auth-service';
+import { signIn } from 'next-auth/react';
+import { toast } from 'sonner';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -14,52 +13,42 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // URL에서 파라미터 추출
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
-        const error = searchParams.get('error');
-        const provider = searchParams.get('provider') as 'google' | 'kakao' | 'naver';
+        const success = searchParams.get('success');
+        const tokenAvailable = searchParams.get('token_available');
 
-        // 에러가 있는 경우
-        if (error) {
-          throw new Error(decodeURIComponent(error));
-        }
-
-        // 필수 파라미터 확인
-        if (!code || !provider) {
-          throw new Error('인증 정보가 없습니다.');
-        }
-
-        // 소셜 로그인 콜백 처리
-        const response = await AuthService.handleSocialCallback(provider, code, state || undefined);
-
-        if (response.success) {
-          // 토큰 저장 (소셜 로그인은 기본적으로 기억하기로 설정)
-          AuthService.saveToken(response.data.token, true);
-          
-          // 소셜 로그인 제공자 정보 저장
-          AuthService.saveProvider(provider);
-
-          toast({
-            title: '로그인 성공',
-            description: `환영합니다, ${response.data.user.name}님!`,
+        if (success === 'true' && tokenAvailable === 'true') {
+          // Django에서 JWT 토큰 가져오기
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/tokens/`, {
+            method: 'GET',
+            credentials: 'include', // 쿠키 포함
           });
 
-          // 메인 페이지로 리다이렉트
-          router.push('/');
+          if (response.ok) {
+            const data = await response.json();
+            
+            // NextAuth.js 세션에 Django 토큰 저장
+            const result = await signIn('credentials', {
+              djangoAccessToken: data.tokens.access_token,
+              djangoRefreshToken: data.tokens.refresh_token,
+              userData: JSON.stringify(data.user),
+              redirect: false,
+            });
+
+            if (result?.ok) {
+              toast.success(`${data.user.name}님, 환영합니다!`);
+              router.push('/');
+            } else {
+              throw new Error('NextAuth session creation failed');
+            }
+          } else {
+            throw new Error('Failed to get tokens from Django');
+          }
         } else {
-          throw new Error('로그인 처리에 실패했습니다.');
+          throw new Error('Authentication failed');
         }
       } catch (error) {
-        console.error('소셜 로그인 콜백 처리 오류:', error);
-        
-        toast({
-          title: '로그인 실패',
-          description: error instanceof Error ? error.message : '소셜 로그인 중 오류가 발생했습니다.',
-          variant: 'destructive',
-        });
-
-        // 로그인 페이지로 리다이렉트
+        console.error('Auth callback error:', error);
+        toast.error('로그인 처리 중 오류가 발생했습니다.');
         router.push('/login');
       } finally {
         setIsProcessing(false);
@@ -67,23 +56,26 @@ export default function AuthCallbackPage() {
     };
 
     handleAuthCallback();
-  }, [router, searchParams]);
+  }, [searchParams, router]);
 
   if (isProcessing) {
     return (
-      <div className="container flex h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold">로그인 처리 중...</h2>
-            <p className="text-muted-foreground">
-              잠시만 기다려주세요.
-            </p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold mb-2">로그인 처리 중...</h2>
+          <p className="text-gray-600">잠시만 기다려주세요.</p>
         </div>
       </div>
     );
   }
 
-  return null;
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold mb-2">인증 완료</h2>
+        <p className="text-gray-600">메인 페이지로 이동 중...</p>
+      </div>
+    </div>
+  );
 }

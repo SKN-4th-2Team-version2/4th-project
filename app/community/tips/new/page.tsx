@@ -1,18 +1,9 @@
 'use client';
 
-import type React from 'react';
-
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -21,142 +12,172 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import Link from 'next/link';
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
+import CommunityService from '@/services/community-service';
+import type { Category } from '@/types/community';
 
 export default function NewTipPage() {
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
+  const router = useRouter();
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && tagInput.trim() !== '') {
-      e.preventDefault();
-      if (!tags.includes(tagInput.trim()) && tags.length < 5) {
-        setTags([...tags, tagInput.trim()]);
-        setTagInput('');
+  // 카테고리 로드
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await CommunityService.getCategories({ postType: 'tip' });
+        if (response.success) {
+          setCategories(response.data);
+          if (response.data.length > 0) {
+            setCategoryId(response.data[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+        toast({
+          title: '카테고리 로드 실패',
+          description: '카테고리를 불러오는데 실패했습니다.',
+          variant: 'destructive',
+        });
       }
-    }
-  };
+    };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
+    loadCategories();
+  }, []);
+
+  // 게시글 작성
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title.trim()) {
+      toast({
+        title: '제목을 입력해주세요',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      toast({
+        title: '내용을 입력해주세요',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!categoryId) {
+      toast({
+        title: '카테고리를 선택해주세요',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await CommunityService.createPost({
+        post_type: 'tip',
+        category_id: categoryId,
+        title,
+        content,
+        status: 'published',
+        isAnonymous,
+      });
+
+      if (response.success) {
+        toast({
+          title: '게시글이 작성되었습니다',
+        });
+        router.push('/community/tips');
+      }
+    } catch (error) {
+      console.error('게시글 작성 실패:', error);
+      toast({
+        title: '게시글 작성 실패',
+        description: '게시글을 작성하는데 실패했습니다.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">육아 팁 작성하기</h1>
-        <p className="text-muted-foreground">
-          다른 부모님들에게 도움이 될 육아 팁을 공유해주세요.
-        </p>
-      </div>
-
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle>새 육아 팁</CardTitle>
-          <CardDescription>
-            실제로 효과를 본 육아 팁이나 노하우를 구체적으로 작성해주세요.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">제목</Label>
-            <Input id="title" placeholder="팁의 제목을 입력하세요" />
-            <p className="text-xs text-muted-foreground">
-              명확하고 구체적인 제목이 더 많은 관심을 받습니다.
-            </p>
-          </div>
-
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">육아 팁 작성</h1>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="category">카테고리</Label>
-            <Select>
+            <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger>
                 <SelectValue placeholder="카테고리 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="communication">의사소통</SelectItem>
-                <SelectItem value="sleep">수면</SelectItem>
-                <SelectItem value="nutrition">식이</SelectItem>
-                <SelectItem value="relationship">관계</SelectItem>
-                <SelectItem value="behavior">행동</SelectItem>
-                <SelectItem value="play">놀이</SelectItem>
-                <SelectItem value="etc">기타</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="age">적용 연령대</Label>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="연령대 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 연령</SelectItem>
-                <SelectItem value="newborn">신생아 (0-3개월)</SelectItem>
-                <SelectItem value="infant">영아기 (4-12개월)</SelectItem>
-                <SelectItem value="toddler">걸음마기 (1-2세)</SelectItem>
-                <SelectItem value="preschool">유아기 (3-5세)</SelectItem>
-                <SelectItem value="school">학령기 (6세 이상)</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="title">제목</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="제목을 입력하세요"
+              maxLength={200}
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">팁 내용</Label>
+            <Label htmlFor="content">내용</Label>
             <Textarea
               id="content"
-              placeholder="팁 내용을 자세히 작성해주세요"
-              rows={15}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="내용을 입력하세요"
+              className="min-h-[300px]"
+              maxLength={10000}
             />
-            <p className="text-xs text-muted-foreground">
-              구체적인 방법, 효과, 주의사항 등을 포함하면 더 유용한 정보가
-              됩니다. 마크다운 문법을 사용하여 글을 구조화할 수 있습니다. (##
-              제목, * 목록 등)
-            </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tags">태그</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="flex items-center gap-1"
-                >
-                  {tag}
-                  <X
-                    size={14}
-                    className="cursor-pointer"
-                    onClick={() => handleRemoveTag(tag)}
-                  />
-                </Badge>
-              ))}
-            </div>
-            <Input
-              id="tags"
-              placeholder="태그를 입력하고 Enter를 누르세요 (최대 5개)"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-              disabled={tags.length >= 5}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="anonymous"
+              checked={isAnonymous}
+              onCheckedChange={setIsAnonymous}
             />
-            <p className="text-xs text-muted-foreground">
-              관련 키워드를 태그로 추가하면 다른 부모님들이 팁을 찾기
-              쉬워집니다.
-            </p>
+            <Label htmlFor="anonymous">익명으로 작성</Label>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-between border-t px-6 py-4">
-          <Button variant="outline" asChild>
-            <Link href="/community/tips">취소</Link>
-          </Button>
-          <Button>팁 등록하기</Button>
-        </CardFooter>
-      </Card>
+
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isSubmitting}
+            >
+              취소
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? '작성 중...' : '작성하기'}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
