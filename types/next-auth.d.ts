@@ -4,6 +4,7 @@ declare module 'next-auth' {
   interface Session {
     djangoAccessToken?: string;
     djangoRefreshToken?: string;
+    error?: string; // 에러 정보 추가
     user?: {
       id: string;
       email: string;
@@ -26,6 +27,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     djangoAccessToken?: string;
     djangoRefreshToken?: string;
+    error?: string; // 에러 정보 추가
     user?: {
       id: string;
       name?: string | null;

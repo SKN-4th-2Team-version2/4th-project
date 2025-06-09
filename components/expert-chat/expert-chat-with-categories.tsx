@@ -13,12 +13,13 @@ import {
 } from '@/components/ui/card';
 import { generateExpertResponse } from '@/app/actions/expert-ai';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Save, Sparkles } from 'lucide-react';
+import { Bot, Save, Sparkles, Wifi, WifiOff } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { saveChatHistory, getChatHistory } from '@/app/actions/chat-history';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
+import { useWebSocket } from '@/hooks/use-websocket';
 
 const INITIAL_MESSAGES: Message[] = [
   {
@@ -54,6 +55,13 @@ export function ExpertChatWithCategories({
   const [isLoadingHistory, setIsLoadingHistory] = useState(!!continueFromId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const {
+    isConnected: isWebSocketConnected,
+    sendMessage: sendWebSocketMessage,
+    lastMessage,
+  } = useWebSocket(
+    process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001',
+  );
 
   // 이전 상담 내용 불러오기
   useEffect(() => {
@@ -138,8 +146,20 @@ export function ExpertChatWithCategories({
     ]);
   }, [category, isLoadingHistory, continueFromId]);
 
+  // WebSocket 메시지 수신 처리
+  useEffect(() => {
+    if (lastMessage) {
+      const aiResponse: Message = {
+        role: 'assistant',
+        content: lastMessage,
+        createdAt: new Date(),
+      };
+      setMessages((prev) => [...prev, aiResponse]);
+      setIsLoading(false);
+    }
+  }, [lastMessage]);
+
   const handleSendMessage = async (content: string) => {
-    // 사용자 메시지 추가
     const userMessage: Message = {
       role: 'user',
       content,
@@ -150,12 +170,15 @@ export function ExpertChatWithCategories({
     setIsLoading(true);
 
     try {
-      // 카테고리 정보를 포함하여 AI 응답 생성
-      const aiResponse = await generateExpertResponse(content, category);
-      setMessages((prev) => [...prev, aiResponse]);
+      if (isWebSocketConnected) {
+        sendWebSocketMessage(content);
+      } else {
+        const aiResponse = await generateExpertResponse(content, category);
+        setMessages((prev) => [...prev, aiResponse]);
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error('Error generating response:', error);
-      // 오류 메시지 추가
       setMessages((prev) => [
         ...prev,
         {
@@ -163,9 +186,8 @@ export function ExpertChatWithCategories({
           content:
             '죄송합니다. 응답을 생성하는 중에 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
           createdAt: new Date(),
-        },
+        } as Message,
       ]);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -243,70 +265,49 @@ export function ExpertChatWithCategories({
   }
 
   return (
-    <Card className="w-full h-[700px] max-h-[80vh] flex flex-col">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" />
-            <CardTitle>전문가 AI 상담</CardTitle>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveChat}
-              disabled={isSaving || messages.length < 2}
-              className="flex items-center gap-1"
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? '저장 중...' : '상담 저장'}
-            </Button>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Sparkles className="h-3 w-3" />
-              <span>AI 기반</span>
-            </Badge>
+    <Card className="flex h-full flex-col">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="flex items-center gap-2">
+          <Bot className="h-5 w-5 text-primary" />
+          <CardTitle>전문가 AI 상담</CardTitle>
+          <div className="flex items-center gap-1">
+            {isWebSocketConnected ? (
+              <Wifi className="h-4 w-4 text-green-500" />
+            ) : (
+              <WifiOff className="h-4 w-4 text-red-500" />
+            )}
           </div>
         </div>
-        <CardDescription>
-          육아 관련 질문에 전문적인 답변을 제공합니다. 의학적 진단이나 응급
-          상황은 전문의와 상담하세요.
-        </CardDescription>
-        <div className="mt-2">
-          <Tabs
-            value={category}
-            onValueChange={(value) => setCategory(value as CategoryType)}
-            className="w-full"
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveChat}
+            disabled={isSaving}
           >
-            <TabsList className="w-full max-w-full overflow-auto">
-              {categories.map((cat) => (
-                <TabsTrigger key={cat.value} value={cat.value}>
-                  {cat.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+            <Save className="mr-2 h-4 w-4" />
+            저장
+          </Button>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            <span>{isWebSocketConnected ? 'WebSocket' : 'AI 기반'}</span>
+          </Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto p-4">
+      <CardContent className="flex-1 overflow-y-auto">
         <div className="space-y-4">
           {messages.map((message, index) => (
             <ChatMessage key={index} message={message} />
           ))}
-          {isLoading && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground p-4">
-              <div className="flex space-x-1">
-                <div className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></div>
-                <div className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></div>
-                <div className="h-2 w-2 rounded-full bg-primary animate-bounce"></div>
-              </div>
-              <span>전문가 AI가 답변을 작성 중입니다...</span>
-            </div>
-          )}
           <div ref={messagesEndRef} />
         </div>
       </CardContent>
-      <CardFooter className="p-0">
-        <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+      <CardFooter>
+        <ChatInput
+          onSend={handleSendMessage}
+          isLoading={isLoading}
+          disabled={!isWebSocketConnected}
+        />
       </CardFooter>
     </Card>
   );

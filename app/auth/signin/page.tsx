@@ -24,6 +24,26 @@ export default function SignIn() {
     const error = searchParams.get('error');
     if (error) {
       console.error('로그인 에러:', error);
+      
+      // 에러 타입에 따른 사용자 친화적 메시지 표시
+      let errorMessage = '로그인 중 오류가 발생했습니다.';
+      
+      switch (error) {
+        case 'OAuthCallback':
+          errorMessage = 'OAuth 콜백 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
+          break;
+        case 'OAuthSignin':
+          errorMessage = '소셜 로그인 중 오류가 발생했습니다.';
+          break;
+        case 'AccessDenied':
+          errorMessage = '액세스가 거부되었습니다.';
+          break;
+      }
+      
+      // 에러 메시지를 사용자에게 표시 (토스트나 alert 등)
+      if (typeof window !== 'undefined') {
+        alert(errorMessage);
+      }
     }
   }, [searchParams]);
 

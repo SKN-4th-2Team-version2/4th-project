@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
-  createdAt?: Date;
+  createdAt: Date;
 }
 
 interface ChatMessageProps {

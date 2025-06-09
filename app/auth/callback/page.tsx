@@ -2,63 +2,58 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const success = searchParams.get('success');
-        const tokenAvailable = searchParams.get('token_available');
-
-        if (success === 'true' && tokenAvailable === 'true') {
-          // Django에서 JWT 토큰 가져오기
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/tokens/`, {
-            method: 'GET',
-            credentials: 'include', // 쿠키 포함
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            
-            // NextAuth.js 세션에 Django 토큰 저장
-            const result = await signIn('credentials', {
-              djangoAccessToken: data.tokens.access_token,
-              djangoRefreshToken: data.tokens.refresh_token,
-              userData: JSON.stringify(data.user),
-              redirect: false,
-            });
-
-            if (result?.ok) {
-              toast.success(`${data.user.name}님, 환영합니다!`);
-              router.push('/');
-            } else {
-              throw new Error('NextAuth session creation failed');
-            }
-          } else {
-            throw new Error('Failed to get tokens from Django');
-          }
-        } else {
-          throw new Error('Authentication failed');
+        // NextAuth의 세션 상태 확인
+        if (status === 'loading') {
+          return; // 아직 로딩 중
         }
+
+        if (status === 'authenticated' && session?.djangoAccessToken) {
+          // 성공적으로 로그인됨
+          toast.success(`${session.user?.name || '사용자'}님, 환영합니다!`);
+          router.push('/');
+          return;
+        }
+
+        // NextAuth 에러 처리
+        const error = searchParams.get('error');
+        if (error) {
+          console.error('NextAuth 에러:', error);
+          toast.error('로그인 처리 중 오류가 발생했습니다.');
+          router.push('/auth/signin?error=' + error);
+          return;
+        }
+
+        // 세션이 없는 경우 로그인 페이지로 이동
+        if (status === 'unauthenticated') {
+          router.push('/auth/signin');
+          return;
+        }
+
       } catch (error) {
         console.error('Auth callback error:', error);
         toast.error('로그인 처리 중 오류가 발생했습니다.');
-        router.push('/login');
+        router.push('/auth/signin');
       } finally {
         setIsProcessing(false);
       }
     };
 
     handleAuthCallback();
-  }, [searchParams, router]);
+  }, [status, session, searchParams, router]);
 
-  if (isProcessing) {
+  if (isProcessing || status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
