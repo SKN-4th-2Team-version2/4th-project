@@ -60,9 +60,15 @@ export function ExpertChatWithCategories({
     sendMessage: sendWebSocketMessage,
     lastMessage,
     reconnect,
-  } = useWebSocket(
-    process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001',
-  );
+    cleanup,
+  } = useWebSocket(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001');
+
+  // 컴포넌트 언마운트 시 WebSocket 정리
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   // WebSocket 연결 상태 모니터링
   useEffect(() => {
@@ -112,9 +118,17 @@ export function ExpertChatWithCategories({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 카테고리가 변경될 때 카테고리별 초기 메시지 설정 (이전 상담을 불러오는 경우는 제외)
+  // 카테고리 변경 시 WebSocket 세션 정리 및 재연결
   useEffect(() => {
     if (isLoadingHistory || continueFromId) return;
+
+    console.log('카테고리가 변경되어 WebSocket 세션을 재설정합니다...');
+
+    // 이전 WebSocket 세션 정리
+    cleanup();
+
+    // 새로운 WebSocket 연결
+    reconnect();
 
     let welcomeMessage =
       '안녕하세요! 마파덜의 육아 전문가 AI입니다. 어떤 질문이든 편하게 물어보세요.';
@@ -153,7 +167,7 @@ export function ExpertChatWithCategories({
         createdAt: new Date(),
       },
     ]);
-  }, [category, isLoadingHistory, continueFromId]);
+  }, [category, isLoadingHistory, continueFromId, cleanup, reconnect]);
 
   // WebSocket 메시지 수신 처리
   useEffect(() => {

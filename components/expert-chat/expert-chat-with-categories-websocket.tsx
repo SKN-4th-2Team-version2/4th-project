@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { ChatMessage, type Message } from './chat-message';
 import { ChatInput } from './chat-input';
 import { useWebSocketChat } from '@/hooks/useWebSocketChat';
@@ -24,7 +24,8 @@ import {
   AlertCircle, 
   Trash2, 
   RefreshCw,
-  Clock
+  Clock,
+  ChevronDown
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/components/ui/use-toast';
@@ -35,7 +36,9 @@ export type CategoryType =
   | 'nutrition'
   | 'behavior'
   | 'psychology'
-  | 'education';
+  | 'education'
+  | 'sleep'
+  | 'development';
 
 interface ExpertChatWithCategoriesProps {
   initialCategory?: CategoryType;
@@ -51,7 +54,9 @@ export function ExpertChatWithCategories({
   const [category, setCategory] = useState<CategoryType>(initialCategory);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(!!continueFromId);
+  const [isUserScrolled, setIsUserScrolled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const {
@@ -64,9 +69,11 @@ export function ExpertChatWithCategories({
     sendMessage,
     clearHistory,
     disconnect,
+    forceDisconnect,
   } = useWebSocketChat({
     category,
-    sessionType
+    sessionType,
+    specialChatUrl: process.env.NEXT_PUBLIC_SPECIAL_CHAT_URL
   });
 
   // 이전 상담 내용 불러오기
@@ -95,15 +102,66 @@ export function ExpertChatWithCategories({
     }
   }, [continueFromId]);
 
-  // 새 메시지가 추가될 때마다 스크롤을 아래로 이동
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // 사용자 스크롤 감지
+  const handleScroll = useCallback(() => {
+    if (chatContainerRef.current) {
+      const container = chatContainerRef.current;
+      const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
+      setIsUserScrolled(!isAtBottom);
+    }
+  }, []);
 
-  const handleSendMessage = (content: string) => {
+  // 새 메시지가 추가될 때마다 채팅 컸테이너 내에서만 스크롤
+  useEffect(() => {
+    if (chatContainerRef.current && !isUserScrolled) {
+      const container = chatContainerRef.current;
+      
+      // 지연을 주어 DOM 업데이트 후 스크롤
+      const scrollToBottom = () => {
+        requestAnimationFrame(() => {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
+        });
+      };
+      
+      // 약간의 지연 후 스크롤 (메시지 렌더링 완료 대기)
+      const timeoutId = setTimeout(scrollToBottom, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, isUserScrolled]);
+
+  // 새 메시지 전송 시 자동 스크롤 활성화
+  const handleSendMessage = useCallback((content: string) => {
     if (!content.trim()) return;
+    setIsUserScrolled(false); // 새 메시지 전송 시 자동 스크롤 활성화
     sendMessage(content);
-  };
+  }, [sendMessage]);
+
+  // 아래로 스크롤 버튼 클릭
+  const scrollToBottom = useCallback(() => {
+    if (chatContainerRef.current) {
+      setIsUserScrolled(false);
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
+  // 컴포너트 언마운트 시 웹소켓 연결 정리
+  useEffect(() => {
+    return () => {
+      console.log('컴포너트 언마운트 시 웹소켓 연결 정리');
+      if (forceDisconnect) {
+        forceDisconnect();
+      }
+    };
+  }, [forceDisconnect]);
+
+
 
   const handleClearHistory = () => {
     if (window.confirm('대화 기록을 모두 삭제하시겠습니까?')) {
@@ -111,10 +169,36 @@ export function ExpertChatWithCategories({
     }
   };
 
-  const handleReconnect = () => {
-    disconnect();
-    window.location.reload();
-  };
+  // 카테고리 변경 전 사용자 확인
+  const handleCategoryChange = useCallback(async (newCategory: CategoryType) => {
+    if (newCategory === category) return;
+    
+    // 연결 중이면 변경 방지
+    if (connectionStatus === 'connecting') {
+      console.log('연결 중에는 카테고리를 변경할 수 없습니다.');
+      return;
+    }
+    
+    if (messages.length > 0) {
+      const shouldChange = window.confirm(
+        `카테고리를 변경하면 현재 대화 내용이 초기화됩니다. 계속하시겠습니까?`
+      );
+      if (!shouldChange) return;
+    }
+    
+    console.log(`카테고리 변경 시작: ${category} -> ${newCategory}`);
+    
+    // 카테고리 변경
+    setCategory(newCategory);
+  }, [category, connectionStatus, messages.length]);
+
+  const handleReconnect = useCallback(() => {
+    // 기존 연결을 명시적으로 종료하고 새로고침
+    forceDisconnect();
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }, [forceDisconnect]);
 
   const handleSaveChat = async () => {
     const hasUserMessage = messages.some((msg) => msg.role === 'user');
@@ -164,8 +248,15 @@ export function ExpertChatWithCategories({
       behavior: '행동',
       psychology: '심리',
       education: '교육',
+      sleep: '수면',
+      development: '발달',
     };
     return labels[cat];
+  };
+
+  // 카테고리 타입 확인 함수
+  const isSpecialCategory = (cat: CategoryType) => {
+    return cat === 'sleep' || cat === 'development';
   };
 
   const getConnectionStatusColor = () => {
@@ -195,10 +286,12 @@ export function ExpertChatWithCategories({
   };
 
   const categories = [
-    { value: 'nutrition', label: '영양' },
-    { value: 'behavior', label: '행동' },
-    { value: 'psychology', label: '심리' },
-    { value: 'education', label: '교육' },
+    { value: 'nutrition', label: '영양', type: 'normal' },
+    { value: 'behavior', label: '행동', type: 'normal' },
+    { value: 'psychology', label: '심리', type: 'normal' },
+    { value: 'education', label: '교육', type: 'normal' },
+    { value: 'sleep', label: '수면', type: 'special' },
+    { value: 'development', label: '발달', type: 'special' },
   ] as const;
 
   if (isLoadingHistory) {
@@ -253,25 +346,38 @@ export function ExpertChatWithCategories({
 
         <CardDescription>
           {sessionType === 'stream' ? '실시간 스트리밍' : '일반'} 모드로 
-          {getCategoryLabel(category)} 관련 질문에 전문적인 답변을 제공합니다. 
+          {getCategoryLabel(category)} 관련 질문에 전문적인 답변을 제공합니다.
+          {isSpecialCategory(category) && (
+            <span className="block mt-1 text-purple-600 text-sm font-medium">
+              ✨ 전문 AI 모델로 더욱 상세한 상담이 가능합니다.
+            </span>
+          )}
+          <br />
           의학적 진단이나 응급 상황은 전문의와 상담하세요.
         </CardDescription>
 
         {/* 카테고리 선택 탭 */}
         <Tabs
           value={category}
-          onValueChange={(value) => setCategory(value as CategoryType)}
+          onValueChange={(value) => handleCategoryChange(value as CategoryType)}
           className="mt-4"
         >
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             {categories.map((cat) => (
               <TabsTrigger
                 key={cat.value}
                 value={cat.value}
-                disabled={connectionStatus === 'connecting'}
-                className="text-xs"
+                disabled={connectionStatus === 'connecting' || isLoading || connectionStatus === 'disconnected'}
+                className={`text-xs ${
+                  cat.type === 'special' 
+                    ? 'bg-gradient-to-r from-purple-500/10 to-blue-500/10 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-blue-500 data-[state=active]:text-white' 
+                    : ''
+                }`}
               >
                 {cat.label}
+                {cat.type === 'special' && (
+                  <span className="ml-1 text-xs opacity-75">✨</span>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -282,14 +388,21 @@ export function ExpertChatWithCategories({
           <div className="flex items-center gap-2">
             <Clock className="h-3 w-3" />
             <span>세션: {sessionId ? sessionId.slice(0, 8) + '...' : '없음'}</span>
+            <span className="text-xs">
+              ({getCategoryLabel(category)}
+              {isSpecialCategory(category) && (
+                <span className="text-purple-500 ml-1">특수</span>
+              )})
+            </span>
           </div>
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClearHistory}
-              disabled={!isConnected || messages.length === 0}
+              disabled={!isConnected || messages.length === 0 || isSpecialCategory(category)}
               className="h-6 px-2"
+              title={isSpecialCategory(category) ? '특수 카테고리에서는 히스토리 기능을 사용할 수 없습니다.' : '대화 기록 삭제'}
             >
               <Trash2 className="h-3 w-3" />
             </Button>
@@ -314,7 +427,11 @@ export function ExpertChatWithCategories({
         )}
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-y-auto p-4">
+      <CardContent 
+        ref={chatContainerRef} 
+        className="flex-1 overflow-y-auto p-4 relative"
+        onScroll={handleScroll}
+      >
         <div className="space-y-4">
           {messages.map((message, index) => (
             <ChatMessage 
@@ -342,6 +459,18 @@ export function ExpertChatWithCategories({
           
           <div ref={messagesEndRef} />
         </div>
+        
+        {/* 아래로 스크롤 버튼 */}
+        {isUserScrolled && (
+          <Button
+            onClick={scrollToBottom}
+            className="absolute bottom-4 right-4 rounded-full w-10 h-10 p-0 shadow-lg"
+            size="sm"
+            variant="secondary"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        )}
       </CardContent>
 
       <CardFooter className="p-0">

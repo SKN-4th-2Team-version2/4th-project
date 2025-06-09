@@ -177,6 +177,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
       },
     },
     callbackUrl: {
@@ -185,6 +186,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
       },
     },
     csrfToken: {
@@ -194,6 +196,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
       },
     },
     state: {
@@ -203,6 +206,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
       },
     },
   },
