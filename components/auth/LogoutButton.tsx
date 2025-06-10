@@ -1,7 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/auth/AuthContext';
+import { useIntegratedAuth } from '@/hooks/use-integrated-auth'; // 통합 인증 훅 사용
+import { AuthService } from '@/lib/auth'; // JWT 토큰 관리
+import { signOut } from 'next-auth/react';
 import { LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -22,11 +24,33 @@ export default function LogoutButton({
   className,
   onLogoutSuccess,
 }: LogoutButtonProps) {
-  const { logout, isLoading } = useAuth();
+  const { isLoading } = useIntegratedAuth();
 
   const handleLogout = async () => {
     try {
-      await logout();
+      // Django JWT 토큰에 로그아웃 요청 보내기
+      const refreshToken = AuthService.getRefreshToken();
+      if (refreshToken) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${AuthService.getAccessToken()}`,
+            },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+        } catch (error) {
+          console.error('Django 로그아웃 오류:', error);
+        }
+      }
+      
+      // 세션 스토리지에서 JWT 토큰 제거
+      AuthService.clearTokens();
+      
+      // NextAuth 로그아웃
+      await signOut({ redirect: false });
+      
       toast.success('성공적으로 로그아웃되었습니다.');
       
       if (onLogoutSuccess) {

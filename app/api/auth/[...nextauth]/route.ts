@@ -20,6 +20,8 @@ interface ExtendedToken extends JWT {
 interface ExtendedSession extends Session {
   djangoAccessToken?: string;
   djangoRefreshToken?: string;
+  access?: string; // API 클라이언트에서 사용
+  refresh?: string; // API 클라이언트에서 사용
   error?: string;
 }
 
@@ -137,6 +139,9 @@ const NextAuthProvider: NextAuthOptions = {
         ...session,
         djangoAccessToken: token.djangoAccessToken,
         djangoRefreshToken: token.djangoRefreshToken,
+        // API 클라이언트에서 사용하는 키 이름으로 추가
+        access: token.djangoAccessToken,
+        refresh: token.djangoRefreshToken,
         user: {
           ...session.user,
           ...token.user,
@@ -145,6 +150,13 @@ const NextAuthProvider: NextAuthOptions = {
           ? new Date(token.exp * 1000).toISOString()
           : session.expires,
       };
+      
+      console.log('📝 NextAuth 세션 콜백:', {
+        hasAccess: !!updatedSession.access,
+        hasDjangoAccess: !!updatedSession.djangoAccessToken,
+        userEmail: updatedSession.user?.email
+      });
+      
       return updatedSession;
     },
   },

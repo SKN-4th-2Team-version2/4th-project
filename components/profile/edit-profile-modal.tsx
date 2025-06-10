@@ -80,8 +80,19 @@ export function EditProfileModal({
         name: data.name,
       });
 
+      // 세션 스토리지의 JWT 사용자 정보 업데이트
+      const { AuthService } = await import('@/lib/auth');
+      const currentUser = AuthService.getUser();
+      if (currentUser) {
+        const updatedUser = {
+          ...currentUser,
+          name: updatedProfile.data.name,
+        };
+        AuthService.updateUser(updatedUser);
+      }
+
       // NextAuth 세션 업데이트
-      const updatedUser = {
+      const updatedSessionUser = {
         ...session?.user,
         name: updatedProfile.data.name,
         image: updatedProfile.data.profile_image,
@@ -92,15 +103,8 @@ export function EditProfileModal({
       // 세션 업데이트
       await updateSession({
         ...session,
-        user: updatedUser,
+        user: updatedSessionUser,
       });
-
-      // API 클라이언트의 세션 캐시 업데이트
-      const client = apiClient as any;
-      if (client.sessionCache) {
-        client.sessionCache.user = updatedUser;
-        client.sessionCache.lastUpdated = Date.now();
-      }
 
       toast.success('프로필이 업데이트되었습니다');
       setOpen(false);
@@ -109,7 +113,25 @@ export function EditProfileModal({
       // 페이지 갱신
       router.refresh();
     } catch (error) {
-      toast.error('프로필 업데이트에 실패했습니다');
+      console.error('프로필 업데이트 오류:', error);
+      
+      // 에러 메시지 처리
+      let errorMessage = '프로필 업데이트에 실패했습니다';
+      
+      if (error instanceof Error) {
+        // 서버에서 온 에러 메시지 사용
+        if (error.message.includes('이름은 필수')) {
+          errorMessage = '이름을 입력해주세요';
+        } else if (error.message.includes('100자를 초과')) {
+          errorMessage = '이름은 100자를 초과할 수 없습니다';
+        } else if (error.message.includes('서버 오류')) {
+          errorMessage = '서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요';
+        } else if (error.message.includes('연결할 수 없습니다')) {
+          errorMessage = '네트워크 연결을 확인해주세요';
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

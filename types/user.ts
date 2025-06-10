@@ -6,10 +6,11 @@ import { MapaderApiResponse } from './index';
 export interface Child {
   id: string;
   name: string;
-  birthDate: string; // YYYY-MM-DD 형식
+  birth_date: string; // YYYY-MM-DD 형식 (API 응답에 맞게 변경)
   gender?: 'male' | 'female';
-  ageMonths: number;
-  createdAt: string;
+  age_months: number; // API 응답에 맞게 변경
+  created_at: string; // API 응답에 맞게 변경
+  updated_at: string; // API 응답에 맞게 추가
 }
 
 // 자녀 정보 생성 요청
@@ -22,7 +23,7 @@ export interface CreateChildRequest {
 // 자녀 정보 수정 요청
 export interface UpdateChildRequest {
   name: string;
-  birthDate: string; // YYYY-MM-DD 형식
+  birth_date: string; // YYYY-MM-DD 형식 (API 요청에 맞게 변경)
   gender?: 'male' | 'female';
 }
 

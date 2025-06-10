@@ -20,10 +20,26 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { AgeGroup } from '@/types/development';
 import { useEffect, useState } from 'react';
-import type { Child } from '@/types/child';
+import type { Child } from '@/types/user';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChildService } from '@/services/child-service';
 import { useIntegratedAuth } from '@/hooks/use-integrated-auth';
+import apiClient from '@/services/api-client';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  profile_image?: string;
+  auth_provider?: string;
+  is_new_user: boolean;
+  children: Child[];
+}
+
+interface ProfileResponse {
+  success: boolean;
+  data: UserProfile;
+  message: string;
+}
 
 export default function DevelopmentRecordPage() {
   const router = useRouter();
@@ -36,26 +52,26 @@ export default function DevelopmentRecordPage() {
   const selectedChildId = searchParams.get('childId');
 
   useEffect(() => {
-    const loadChildren = async () => {
+    const loadProfile = async () => {
       if (!isAuthenticated) {
         setIsLoading(false);
         return;
       }
 
       try {
-        const response = await ChildService.getChildren();
+        const response = await apiClient.get<ProfileResponse>('/auth/profile/');
         if (response.success) {
-          setChildren(response.data);
+          setChildren(response.data.children);
         }
       } catch (error) {
-        console.error('자녀 목록 로드 실패:', error);
+        console.error('프로필 데이터 로드 실패:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     if (!isAuthLoading) {
-      loadChildren();
+      loadProfile();
     }
   }, [isAuthenticated, isAuthLoading]);
 
@@ -114,8 +130,8 @@ export default function DevelopmentRecordPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {children.map((child) => (
-                    <SelectItem key={child.id} value={child.id.toString()}>
-                      {child.name} ({child.birthDate})
+                    <SelectItem key={child.id} value={child.id}>
+                      {child.name} ({new Date(child.birth_date).toLocaleDateString('ko-KR')})
                     </SelectItem>
                   ))}
                 </SelectContent>

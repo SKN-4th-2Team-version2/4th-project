@@ -29,7 +29,7 @@ import {
  * 발달 모니터링 관련 API 서비스
  */
 export class DevelopmentService {
-  private static readonly BASE_PATH = '/vectordb/development';
+  private static readonly BASE_PATH = '/development';
 
   // ========== 발달 기록 관련 ==========
 
@@ -243,7 +243,7 @@ export class DevelopmentService {
         content: string;
         metadata: Record<string, any>;
       }>;
-    }>(`/vectordb/search/?${queryParams.toString()}`);
+    }>(`${this.BASE_PATH}/search/?${queryParams.toString()}`);
   }
 
   // ========== 통계 관련 ==========

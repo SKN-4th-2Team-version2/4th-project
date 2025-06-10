@@ -39,7 +39,7 @@ const formSchema = z.object({
     .string()
     .min(1, '이름을 입력해주세요')
     .max(100, '이름은 100자를 초과할 수 없습니다'),
-  birth_Date: z
+  birth_date: z // field 이름 변경
     .string()
     .min(1, '생년월일을 입력해주세요')
     .refine((date) => UserService.validateBirthDate(date), {
@@ -63,7 +63,7 @@ export function AddChildModal({ onSuccess }: AddChildModalProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      birth_Date: '',
+      birth_date: '', // field 이름 변경
       gender: undefined,
     },
   });
@@ -73,7 +73,7 @@ export function AddChildModal({ onSuccess }: AddChildModalProps) {
       setIsLoading(true);
       const requestData = {
         name: data.name,
-        birth_date: data.birth_Date,
+        birth_date: data.birth_date, // field 이름 변경
         ...(data.gender && { gender: data.gender }),
       };
       console.log(requestData);
@@ -120,7 +120,7 @@ export function AddChildModal({ onSuccess }: AddChildModalProps) {
             />
             <FormField
               control={form.control}
-              name="birth_Date"
+              name="birth_date" // field 이름 변경
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>생년월일</FormLabel>

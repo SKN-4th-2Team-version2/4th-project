@@ -30,7 +30,8 @@ interface UpdateProfileResponse {
  * 사용자 관련 API 서비스
  */
 export class UserService {
-  private static readonly BASE_PATH = '/users';
+  private static readonly BASE_PATH = '/auth'; // /users에서 /auth로 변경
+  private static readonly CHILDREN_PATH = '/users'; // 자녀 관련은 아직 /users 사용
 
   /**
    * 프로필 정보 업데이트
@@ -40,7 +41,7 @@ export class UserService {
   ): Promise<UpdateProfileResponse> {
     try {
       const response = await apiClient.put<UpdateProfileResponse>(
-        `${this.BASE_PATH}/profile/`,
+        `${this.BASE_PATH}/profile/`, // /auth/profile/로 변경
         data,
       );
       return response;
@@ -55,7 +56,7 @@ export class UserService {
    */
   static async getChildren(): Promise<ChildrenListResponse> {
     return await apiClient.get<ChildrenListResponse>(
-      `${this.BASE_PATH}/children/`,
+      `${this.CHILDREN_PATH}/children/`,
     );
   }
 
@@ -66,7 +67,7 @@ export class UserService {
     childData: CreateChildRequest,
   ): Promise<ChildResponse> {
     return await apiClient.post<ChildResponse>(
-      `${this.BASE_PATH}/children/`,
+      `${this.CHILDREN_PATH}/children/`,
       childData,
     );
   }
@@ -79,7 +80,7 @@ export class UserService {
     childData: UpdateChildRequest,
   ): Promise<ChildResponse> {
     return await apiClient.put<ChildResponse>(
-      `${this.BASE_PATH}/children/${childId}/`,
+      `${this.CHILDREN_PATH}/children/${childId}/`,
       childData,
     );
   }
@@ -89,17 +90,17 @@ export class UserService {
    */
   static async deleteChild(childId: string): Promise<DeleteChildResponse> {
     return await apiClient.delete<DeleteChildResponse>(
-      `${this.BASE_PATH}/children/${childId}/`,
+      `${this.CHILDREN_PATH}/children/${childId}/`,
     );
   }
 
   /**
    * 자녀 나이(개월수) 계산 헬퍼 함수
-   * @param birth_Date - 생년월일 (YYYY-MM-DD 형식)
+   * @param birth_date - 생년월일 (YYYY-MM-DD 형식)
    * @returns 개월수
    */
-  static calculateAgeMonths(birth_Date: string): number {
-    const birth = new Date(birth_Date);
+  static calculateAgeMonths(birth_date: string): number {
+    const birth = new Date(birth_date);
     const now = new Date();
 
     const yearDiff = now.getFullYear() - birth.getFullYear();
@@ -110,16 +111,16 @@ export class UserService {
 
   /**
    * 생년월일 유효성 검사 헬퍼 함수
-   * @param birth_Date - 생년월일 (YYYY-MM-DD 형식)
+   * @param birth_date - 생년월일 (YYYY-MM-DD 형식)
    * @returns 유효성 여부
    */
-  static validateBirthDate(birth_Date: string): boolean {
+  static validateBirthDate(birth_date: string): boolean {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(birth_Date)) {
+    if (!dateRegex.test(birth_date)) {
       return false;
     }
 
-    const date = new Date(birth_Date);
+    const date = new Date(birth_date);
     const now = new Date();
 
     // 유효한 날짜인지 확인

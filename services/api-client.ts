@@ -1,24 +1,37 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { getSession } from 'next-auth/react';
+import { AuthService } from '@/lib/auth'; // JWT 토큰 관리
 
 // API 기본 설정
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+// 개발 환경에서는 항상 Django 백엔드로 요청
+const getDjangoApiUrl = () => {
+  // 브라우저 환경에서만 실행
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `${protocol}//localhost:8000/api`;
+    }
+  }
+  
+  // 서버 사이드나 프로덕션에서는 환경 변수 사용
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+};
+
+const API_BASE_URL = getDjangoApiUrl();
+
+console.log('🔍 환경 변수 확인:', {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  NODE_ENV: process.env.NODE_ENV,
+  계산된_API_BASE_URL: API_BASE_URL
+});
+
 const API_TIMEOUT = parseInt(
   process.env.NEXT_PUBLIC_API_TIMEOUT || '30000',
   10,
 );
-
-// 세션 캐시
-interface SessionCache {
-  djangoAccessToken: string;
-  djangoRefreshToken: string;
-  user: any;
-  lastUpdated: number;
-}
-
-let sessionCache: SessionCache | null = null;
-const CACHE_DURATION = 30 * 60 * 1000; // 30분
 
 /**
  * 기본 API 클라이언트 클래스
@@ -28,9 +41,10 @@ class ApiClient {
   private client: AxiosInstance;
   private isRefreshing = false;
   private refreshSubscribers: ((token: string) => void)[] = [];
-  private sessionPromise: Promise<any> | null = null;
 
   constructor() {
+    console.log('🔧 API_BASE_URL:', API_BASE_URL);
+    
     this.client = axios.create({
       baseURL: API_BASE_URL,
       timeout: API_TIMEOUT,
@@ -43,8 +57,13 @@ class ApiClient {
     // 요청 인터셉터 설정
     this.client.interceptors.request.use(
       async (config) => {
-        const now = Date.now();
-
+        console.log('📤 API 요청:', {
+          url: config.url,
+          baseURL: config.baseURL,
+          fullURL: `${config.baseURL}${config.url}`,
+          method: config.method?.toUpperCase()
+        });
+        
         // CSRF 토큰을 가져옵니다
         const csrfToken = document.cookie
           .split('; ')
@@ -55,40 +74,37 @@ class ApiClient {
           config.headers['X-CSRFToken'] = csrfToken;
         }
 
-        // 캐시된 토큰이 있고 유효한 경우 사용
-        if (
-          sessionCache?.djangoAccessToken &&
-          now - sessionCache.lastUpdated < CACHE_DURATION
-        ) {
-          config.headers.Authorization = `Bearer ${sessionCache.djangoAccessToken}`;
-          return config;
+        // 세션 스토리지에서 JWT 토큰 가져오기
+        let accessToken = AuthService.getAccessToken();
+        
+        // 세션 스토리지에 토큰이 없으면 NextAuth 세션에서 가져오기
+        if (!accessToken) {
+          try {
+            const session = await getSession();
+            
+            if (session?.access) {
+              accessToken = session.access;
+              
+              // NextAuth에서 받은 토큰을 세션 스토리지에 저장
+              const authTokens = {
+                access: session.access,
+                refresh: session.refresh || '',
+                user: session.user
+              };
+              AuthService.setTokens(authTokens);
+              console.log('💾 JWT 토큰을 세션 스토리지에 저장');
+            }
+          } catch (error) {
+            console.error('❌ NextAuth 세션 가져오기 실패:', error);
+          }
         }
 
-        // 이미 진행 중인 세션 요청이 있으면 그것을 재사용
-        if (this.sessionPromise) {
-          const session = await this.sessionPromise;
-          if (session?.djangoAccessToken) {
-            config.headers.Authorization = `Bearer ${session.djangoAccessToken}`;
-          }
-          return config;
+        if (accessToken) {
+          config.headers.Authorization = `Bearer ${accessToken}`;
+        } else {
+          console.warn('⚠️ 인증 토큰이 없어서 API 요청에 실패할 수 있습니다:', config.url);
         }
-
-        // 새로운 세션 요청
-        this.sessionPromise = getSession();
-        try {
-          const session = await this.sessionPromise;
-          if (session?.djangoAccessToken) {
-            sessionCache = {
-              djangoAccessToken: session.djangoAccessToken,
-              djangoRefreshToken: session.djangoRefreshToken || '',
-              user: session.user,
-              lastUpdated: now,
-            };
-            config.headers.Authorization = `Bearer ${session.djangoAccessToken}`;
-          }
-        } finally {
-          this.sessionPromise = null;
-        }
+        
         return config;
       },
       (error) => {
@@ -104,12 +120,25 @@ class ApiClient {
 
         // 토큰 만료로 인한 401 에러 처리
         if (error.response?.status === 401 && !originalRequest._retry) {
+          // 토큰이 있는 경우에만 리프레시 시도
+          const hasToken = AuthService.getAccessToken() || (await getSession())?.access;
+          
+          if (!hasToken) {
+            // 토큰이 아예 없는 경우 - 로그인 필요
+            console.info('토큰이 없어 로그인이 필요합니다.');
+            return Promise.reject(error);
+          }
+          
           if (this.isRefreshing) {
             // 이미 토큰 갱신 중이면 대기
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
               this.refreshSubscribers.push((token: string) => {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-                resolve(this.client(originalRequest));
+                if (token) {
+                  originalRequest.headers.Authorization = `Bearer ${token}`;
+                  resolve(this.client(originalRequest));
+                } else {
+                  reject(error);
+                }
               });
             });
           }
@@ -118,8 +147,16 @@ class ApiClient {
           this.isRefreshing = true;
 
           try {
-            const session = await getSession();
-            if (!session?.djangoRefreshToken) {
+            // 세션 스토리지에서 리프레시 토큰 가져오기
+            let refreshToken = AuthService.getRefreshToken();
+            
+            // 세션 스토리지에 리프레시 토큰이 없으면 NextAuth 세션에서 가져오기
+            if (!refreshToken) {
+              const session = await getSession();
+              refreshToken = session?.refresh;
+            }
+            
+            if (!refreshToken) {
               throw new Error('리프레시 토큰이 없습니다');
             }
 
@@ -127,16 +164,15 @@ class ApiClient {
             const response = await axios.post(
               `${API_BASE_URL}/auth/token/refresh/`,
               {
-                refresh_token: session.djangoRefreshToken,
+                refresh: refreshToken,
               },
             );
 
             const { access } = response.data;
-
-            // 세션 캐시 업데이트
-            if (sessionCache) {
-              sessionCache.djangoAccessToken = access;
-              sessionCache.lastUpdated = Date.now();
+            
+            // 세션 스토리지에 새로운 액세스 토큰 저장
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('access_token', access);
             }
 
             // 대기 중인 요청들 처리
@@ -147,12 +183,28 @@ class ApiClient {
             originalRequest.headers.Authorization = `Bearer ${access}`;
             return this.client(originalRequest);
           } catch (refreshError) {
-            // 리프레시 토큰도 만료된 경우 로그아웃 처리
-            sessionCache = null;
-            if (typeof window !== 'undefined') {
-              window.location.href = '/auth/signin';
+            // 리프레시 토큰도 만료된 경우
+            console.warn('토큰 갱신 실패:', refreshError);
+            AuthService.clearTokens();
+            
+            // 대기 중인 요청들에게 실패 알림
+            this.refreshSubscribers.forEach((callback) => callback(''));
+            this.refreshSubscribers = [];
+            
+            // 특정 페이지에서만 자동 리다이렉트
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+            const shouldRedirect = currentPath.includes('/dashboard') || 
+                                 currentPath.includes('/profile') ||
+                                 currentPath.includes('/children');
+                                 
+            if (shouldRedirect && typeof window !== 'undefined') {
+              console.info('인증 만료로 인해 로그인 페이지로 이동합니다.');
+              setTimeout(() => {
+                window.location.href = '/login';
+              }, 1000); // 1초 후 리다이렉트 (에러 메시지 표시 시간 확보)
             }
-            return Promise.reject(refreshError);
+            
+            return Promise.reject(error); // 원본 에러 반환
           } finally {
             this.isRefreshing = false;
           }

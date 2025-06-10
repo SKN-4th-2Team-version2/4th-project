@@ -1,6 +1,7 @@
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import apiClient from '@/services/api-client';
+import { AuthService } from '@/lib/auth'; // JWT 토큰 관리
 import { SocialConnectionsResponse, SocialDisconnectResponse } from '@/types/auth';
 
 /**
@@ -18,27 +19,46 @@ export function useIntegratedAuth() {
 
   // Django 사용자 프로필 조회
   useEffect(() => {
-    if (isAuthenticated && djangoAccessToken && !djangoUser) {
-      loadDjangoUserProfile();
+    if (isAuthenticated) {
+      // NextAuth 세션에서 Django JWT 토큰을 세션 스토리지에 저장
+      if (session?.access && session?.refresh && session?.user) {
+        const authTokens = {
+          access: session.access,
+          refresh: session.refresh,
+          user: session.user
+        };
+        AuthService.setTokens(authTokens);
+        setDjangoUser(session.user);
+      } else if (!djangoUser) {
+        loadDjangoUserProfile();
+      }
     }
-  }, [isAuthenticated, djangoAccessToken, djangoUser]);
+  }, [isAuthenticated, session, djangoUser]);
 
   const loadDjangoUserProfile = async () => {
-    if (!djangoAccessToken) return;
+    // 세션 스토리지에서 JWT 토큰 가져오기
+    const storedToken = AuthService.getAccessToken();
+    const accessToken = djangoAccessToken || storedToken;
+    
+    if (!accessToken) return;
     
     try {
       setIsLoadingDjango(true);
       setError(null);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/social/profile/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/profile/`, {
         headers: {
-          'Authorization': `Bearer ${djangoAccessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
       
       if (response.ok) {
-        const userProfile = await response.json();
+        const result = await response.json();
+        const userProfile = result.data || result; // API 응답 구조에 따라 조정
         setDjangoUser(userProfile);
+        
+        // 세션 스토리지의 사용자 정보도 업데이트
+        AuthService.updateUser(userProfile);
       } else {
         throw new Error('Failed to fetch Django user profile');
       }
@@ -52,7 +72,10 @@ export function useIntegratedAuth() {
   };
 
   const refreshDjangoData = async () => {
-    if (djangoAccessToken) {
+    const storedToken = AuthService.getAccessToken();
+    const accessToken = djangoAccessToken || storedToken;
+    
+    if (accessToken) {
       await loadDjangoUserProfile();
     }
   };
@@ -99,12 +122,14 @@ export function useIntegratedAuth() {
  */
 export function useDjangoAuth() {
   const { djangoAccessToken, isAuthenticated } = useIntegratedAuth();
+  const storedToken = AuthService.getAccessToken();
+  const accessToken = djangoAccessToken || storedToken;
   
   return {
-    djangoAccessToken,
-    isAuthenticated: isAuthenticated && !!djangoAccessToken,
+    djangoAccessToken: accessToken,
+    isAuthenticated: isAuthenticated && !!accessToken,
     getAuthHeaders: () => ({
-      'Authorization': `Bearer ${djangoAccessToken}`,
+      'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     }),
   };

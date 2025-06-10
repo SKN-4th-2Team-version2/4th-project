@@ -6,14 +6,15 @@ import { AddChildModal } from './add-child-modal';
 
 interface ChildrenSectionProps {
   children: Child[];
+  onChildrenUpdate?: () => void; // 자녀 정보 업데이트 콜백
 }
 
-export function ChildrenSection({ children }: ChildrenSectionProps) {
+export function ChildrenSection({ children, onChildrenUpdate }: ChildrenSectionProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>자녀 정보</CardTitle>
-        {children.length === 0 && <AddChildModal />}
+        <AddChildModal onSuccess={onChildrenUpdate} />
       </CardHeader>
       <CardContent>
         {children.length > 0 ? (
@@ -24,9 +25,9 @@ export function ChildrenSection({ children }: ChildrenSectionProps) {
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold">{child.name}</h3>
                     <div className="text-sm text-muted-foreground">
-                      <p>생년월일: {child.birth_Date}</p>
-                      <p>성별: {child.gender === 'male' ? '남성' : '여성'}</p>
-                      <p>나이: {child.ageMonths}개월</p>
+                      <p>생년월일: {new Date(child.birth_date).toLocaleDateString('ko-KR')}</p>
+                      <p>성별: {child.gender === 'male' ? '남성' : child.gender === 'female' ? '여성' : '미지정'}</p>
+                      <p>나이: {child.age_months}개월</p>
                     </div>
                   </div>
                 </CardContent>
@@ -38,7 +39,6 @@ export function ChildrenSection({ children }: ChildrenSectionProps) {
             <p className="text-muted-foreground mb-4">
               등록된 자녀 정보가 없습니다.
             </p>
-            <AddChildModal />
           </div>
         )}
       </CardContent>
