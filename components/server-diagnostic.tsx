@@ -1,197 +1,268 @@
-import React from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { 
+  AlertTriangle, 
+  RefreshCw, 
+  ExternalLink, 
+  CheckCircle2,
+  XCircle,
+  Clock
+} from 'lucide-react';
 
 interface ServerDiagnosticProps {
   error: string;
-  category: 'general' | 'specialized';
+  category: string;
   onReconnect: () => void;
 }
 
 export function ServerDiagnostic({ error, category, onReconnect }: ServerDiagnosticProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [serverStatus, setServerStatus] = useState<{
+    django: 'checking' | 'online' | 'offline';
+    fastapi: 'checking' | 'online' | 'offline';
+  }>({
+    django: 'checking',
+    fastapi: 'checking',
+  });
 
-  const serverInfo = {
-    general: {
-      name: 'Django 일반 AI 서버',
-      endpoint: 'localhost:8000',
-      port: '8000',
-      technology: 'Django + WebSocket',
-      aiModel: 'ChatGPT API',
-      features: ['영양 상담', '행동 상담', '심리 상담', '교육 상담'],
-      commands: [
-        'cd /Users/link/Documents/SKN/django_back',
-        'python manage.py runserver',
-      ],
-      troubleshooting: [
-        '가상환경이 활성화되어 있는지 확인',
-        'requirements.txt의 모든 패키지가 설치되었는지 확인',
-        'Django settings.py에서 ALLOWED_HOSTS 설정 확인',
-        'CORS 설정이 올바른지 확인',
-        'ChatGPT API 키가 환경변수에 설정되어 있는지 확인'
-      ]
-    },
-    specialized: {
-      name: 'FastAPI 전문 AI 서버',
-      endpoint: '127.0.0.1:8080',
-      port: '8080',
-      technology: 'FastAPI + WebSocket',
-      aiModel: '파인튜닝된 전문 모델',
-      features: ['수면 전문 상담', '발달 전문 상담'],
-      commands: [
-        'cd /path/to/fastapi/server',
-        'uvicorn main:app --host 127.0.0.1 --port 8080',
-      ],
-      troubleshooting: [
-        'FastAPI 서버 파일(main.py)이 존재하는지 확인',
-        '필요한 Python 패키지들이 설치되어 있는지 확인',
-        '8080 포트가 다른 애플리케이션에서 사용 중이지 않은지 확인',
-        '전문 AI 모델 파일이 올바른 위치에 있는지 확인',
-        '환경변수 및 API 키 설정 확인'
-      ]
-    }
-  };
+  const [isChecking, setIsChecking] = useState(false);
 
-  const info = serverInfo[category];
+  // 서버 상태 확인
+  const checkServerStatus = async () => {
+    setIsChecking(true);
+    setServerStatus({ django: 'checking', fastapi: 'checking' });
 
-  const checkServerHealth = async () => {
+    // Django 서버 확인
     try {
-      const response = await fetch(`http://${info.endpoint}/health`, {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const djangoResponse = await fetch('http://localhost:8000/admin/', {
         method: 'GET',
+        signal: controller.signal,
       });
-      return response.ok;
-    } catch {
-      return false;
+      clearTimeout(timeoutId);
+      
+      setServerStatus(prev => ({ 
+        ...prev, 
+        django: djangoResponse.status < 500 ? 'online' : 'offline' 
+      }));
+    } catch (error) {
+      console.error('Django 서버 확인 실패:', error);
+      setServerStatus(prev => ({ ...prev, django: 'offline' }));
+    }
+
+    // 모든 카테고리가 Django를 사용하므로 FastAPI 체크 비활성화
+    setServerStatus(prev => ({ ...prev, fastapi: 'online' }));
+
+    setIsChecking(false);
+  };
+
+  // 컴포넌트 마운트 시 서버 상태 확인
+  useEffect(() => {
+    checkServerStatus();
+  }, [category]);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'online':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'offline':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'checking':
+        return <RefreshCw className="h-4 w-4 text-yellow-500 animate-spin" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const handleDiagnose = async () => {
-    const isHealthy = await checkServerHealth();
-    if (isHealthy) {
-      alert(`✅ ${info.name} 서버가 정상적으로 실행 중입니다.`);
-    } else {
-      alert(`❌ ${info.name} 서버에 연결할 수 없습니다. 아래 해결 방법을 확인해주세요.`);
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'online':
+        return '정상';
+      case 'offline':
+        return '오프라인';
+      case 'checking':
+        return '확인 중...';
+      default:
+        return '알 수 없음';
     }
   };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'online':
+        return 'text-green-600';
+      case 'offline':
+        return 'text-red-600';
+      case 'checking':
+        return 'text-yellow-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
+  const getPrimaryServer = () => {
+    return category === 'specialized' ? 'fastapi' : 'django';
+  };
+
+  const getServerInfo = (serverType: 'django' | 'fastapi') => {
+    const info = {
+      django: {
+        name: 'Django 백엔드',
+        url: 'http://localhost:8000',
+        port: '8000',
+        description: '일반 AI 상담 서버',
+      },
+      fastapi: {
+        name: 'FastAPI 백엔드',
+        url: 'http://127.0.0.1:8080',
+        port: '8080',
+        description: '전문 AI 상담 서버',
+      },
+    };
+    return info[serverType];
+  };
+
+  const primaryServer = getPrimaryServer();
+  const primaryServerInfo = getServerInfo(primaryServer);
+  const isPrimaryServerOffline = serverStatus[primaryServer] === 'offline';
 
   return (
-    <div className="mt-3 space-y-3">
-      {/* 기본 에러 정보 */}
+    <div className="space-y-3">
+      {/* 메인 에러 알림 */}
       <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-sm">
-          <div className="flex items-center justify-between">
-            <span>{error}</span>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={onReconnect}
-              className="ml-2 h-6 text-xs"
-            >
-              재연결
-            </Button>
+          <div className="space-y-2">
+            <div>{error}</div>
+            {isPrimaryServerOffline && (
+              <div className="text-xs opacity-90">
+                {primaryServerInfo.description}가 응답하지 않습니다.
+              </div>
+            )}
           </div>
         </AlertDescription>
       </Alert>
 
-      {/* 상세 진단 정보 */}
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="w-full justify-between h-8">
-            <span className="text-xs font-medium">
-              🔧 서버 진단 정보 및 해결 방법
-            </span>
-            <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      {/* 서버 상태 진단 */}
+      <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-medium">서버 상태 진단</h4>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={checkServerStatus}
+            disabled={isChecking}
+            className="h-7 px-2 text-xs"
+          >
+            {isChecking ? (
+              <RefreshCw className="h-3 w-3 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3 w-3" />
+            )}
+            <span className="ml-1">새로고침</span>
           </Button>
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent className="space-y-3">
-          <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 text-xs space-y-3">
-            {/* 서버 정보 */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <div className="font-medium text-slate-700 dark:text-slate-300">서버</div>
-                <div className="text-slate-600 dark:text-slate-400">{info.name}</div>
-              </div>
-              <div>
-                <div className="font-medium text-slate-700 dark:text-slate-300">엔드포인트</div>
-                <div className="text-slate-600 dark:text-slate-400 font-mono">{info.endpoint}</div>
-              </div>
-              <div>
-                <div className="font-medium text-slate-700 dark:text-slate-300">기술 스택</div>
-                <div className="text-slate-600 dark:text-slate-400">{info.technology}</div>
-              </div>
-              <div>
-                <div className="font-medium text-slate-700 dark:text-slate-300">AI 모델</div>
-                <div className="text-slate-600 dark:text-slate-400">{info.aiModel}</div>
-              </div>
-            </div>
+        </div>
 
-            {/* 기능 */}
+        {/* Django 서버 상태 */}
+        <div className="flex items-center justify-between p-2 bg-white rounded border">
+          <div className="flex items-center gap-2">
+            {getStatusIcon(serverStatus.django)}
             <div>
-              <div className="font-medium text-slate-700 dark:text-slate-300 mb-1">제공 기능</div>
-              <div className="flex flex-wrap gap-1">
-                {info.features.map((feature, index) => (
-                  <span 
-                    key={index}
-                    className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-xs"
-                  >
-                    {feature}
-                  </span>
-                ))}
+              <div className="text-sm font-medium">Django 서버</div>
+              <div className="text-xs text-muted-foreground">
+                포트 8000 • 일반 AI 상담
               </div>
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant="outline" 
+              className={`text-xs ${getStatusColor(serverStatus.django)}`}
+            >
+              {getStatusText(serverStatus.django)}
+            </Badge>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              onClick={() => window.open('http://localhost:8000/admin/', '_blank')}
+            >
+              <ExternalLink className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
 
-            {/* 서버 실행 명령어 */}
-            <div>
-              <div className="font-medium text-slate-700 dark:text-slate-300 mb-2">서버 실행 명령어</div>
-              <div className="bg-slate-800 text-green-400 p-2 rounded font-mono text-xs space-y-1">
-                {info.commands.map((command, index) => (
-                  <div key={index}>
-                    <span className="text-slate-500">$ </span>
-                    {command}
-                  </div>
-                ))}
+        {/* FastAPI 서버 상태 (전문 카테고리인 경우만) */}
+        {category === 'specialized' && (
+          <div className="flex items-center justify-between p-2 bg-white rounded border">
+            <div className="flex items-center gap-2">
+              {getStatusIcon(serverStatus.fastapi)}
+              <div>
+                <div className="text-sm font-medium">FastAPI 서버</div>
+                <div className="text-xs text-muted-foreground">
+                  포트 8080 • 전문 AI 상담
+                </div>
               </div>
             </div>
-
-            {/* 문제 해결 방법 */}
-            <div>
-              <div className="font-medium text-slate-700 dark:text-slate-300 mb-2">문제 해결 방법</div>
-              <ul className="space-y-1">
-                {info.troubleshooting.map((item, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-slate-400 mt-0.5">•</span>
-                    <span className="text-slate-600 dark:text-slate-400">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* 진단 버튼 */}
-            <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-              <Button 
-                size="sm" 
+            <div className="flex items-center gap-2">
+              <Badge 
                 variant="outline" 
-                onClick={handleDiagnose}
-                className="flex-1 h-7 text-xs"
+                className={`text-xs ${getStatusColor(serverStatus.fastapi)}`}
               >
-                서버 상태 확인
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => window.open(`http://${info.endpoint}`, '_blank')}
-                className="h-7 text-xs"
+                {getStatusText(serverStatus.fastapi)}
+              </Badge>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+                onClick={() => window.open('http://127.0.0.1:8080/', '_blank')}
               >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                브라우저에서 열기
+                <ExternalLink className="h-3 w-3" />
               </Button>
             </div>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+        )}
+
+        {/* 해결 방법 안내 */}
+        {isPrimaryServerOffline && (
+          <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+            <div className="font-medium text-yellow-800 mb-1">해결 방법:</div>
+            <div className="text-yellow-700 space-y-1">
+              <div>1. {primaryServerInfo.name} 서버가 실행 중인지 확인하세요</div>
+              <div>2. 포트 {primaryServerInfo.port}이 사용 가능한지 확인하세요</div>
+              <div>3. 방화벽 설정을 확인하세요</div>
+            </div>
+          </div>
+        )}
+
+        {/* 재연결 버튼 */}
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            onClick={onReconnect}
+            disabled={isPrimaryServerOffline}
+            className="flex-1 h-8 text-xs"
+          >
+            <RefreshCw className="h-3 w-3 mr-1" />
+            재연결 시도
+          </Button>
+          {isPrimaryServerOffline && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="flex-1 h-8 text-xs"
+            >
+              페이지 새로고침
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

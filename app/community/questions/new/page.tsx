@@ -28,7 +28,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 import CommunityService from '@/services/community-service';
 import type { Category, CreatePostRequest } from '@/types/community';
-import { X, Upload, ImagePlus, Loader2, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronRight } from 'lucide-react';
 
 export default function NewQuestionPage() {
   const router = useRouter();
@@ -52,7 +52,6 @@ export default function NewQuestionPage() {
   
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [images, setImages] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 카테고리 로드
@@ -137,25 +136,6 @@ export default function NewQuestionPage() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
-  // 이미지 업로드 핸들러 (여기서는 임시로 URL만 처리)
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 실제로는 UploadService를 사용하여 이미지 업로드 처리
-    // 현재는 임시로 placeholder 이미지 추가
-    if (images.length < 5) {
-      setImages(prev => [...prev, 'https://via.placeholder.com/300x200']);
-    } else {
-      toast({
-        title: '이미지는 최대 5개까지 업로드할 수 있습니다',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // 이미지 제거
-  const handleRemoveImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-  };
-
   // 폼 유효성 검사
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -202,11 +182,6 @@ export default function NewQuestionPage() {
         content: formData.content.trim(),
         status: formData.status,
         isAnonymous: formData.isAnonymous,
-        images: images.map((imageUrl, index) => ({
-          imageUrl,
-          altText: `질문 이미지 ${index + 1}`,
-          order: index
-        }))
       };
 
       const response = await CommunityService.createPost(postData);
@@ -248,22 +223,20 @@ export default function NewQuestionPage() {
         post_type: 'question',
         category_id: formData.categoryId || categories[0]?.id || '',
         title: formData.title.trim() || '제목 없음',
-        content: formData.content.trim() || '내용 없음',
+        content: formData.content.trim() || '',
         status: 'draft',
         isAnonymous: formData.isAnonymous,
-        images: images.map((imageUrl, index) => ({
-          imageUrl,
-          altText: `질문 이미지 ${index + 1}`,
-          order: index
-        }))
       };
 
       const response = await CommunityService.createPost(draftData);
       
       if (response.success) {
         toast({
-          title: '임시저장되었습니다',
+          title: '임시저장 완료',
+          description: '나중에 다시 작성할 수 있습니다.',
         });
+        
+        router.push('/community/questions');
       }
     } catch (error) {
       console.error('임시저장 실패:', error);
@@ -283,249 +256,163 @@ export default function NewQuestionPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* 브레드크럼 */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <Link href="/community" className="hover:text-primary">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+          <Link href="/community" className="hover:underline">
             커뮤니티
           </Link>
-          <ChevronRight className="h-3 w-3" />
-          <Link href="/community/questions" className="hover:text-primary">
+          <ChevronRight className="h-4 w-4" />
+          <Link href="/community/questions" className="hover:underline">
             질문 게시판
           </Link>
-          <ChevronRight className="h-3 w-3" />
-          <span>질문 작성</span>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-foreground">질문 작성</span>
         </div>
 
-        <div>
-          <h1 className="text-3xl font-bold mb-2">질문 작성하기</h1>
-          <p className="text-muted-foreground">
-            다른 부모님들에게 질문하고 육아의 부담을 함께 나누세요.
-          </p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        <Card className="max-w-3xl mx-auto">
+        <Card>
           <CardHeader>
-            <CardTitle>새 질문</CardTitle>
+            <CardTitle>질문 작성</CardTitle>
             <CardDescription>
-              구체적인 질문을 작성하면 더 정확한 답변을 받아 육아 부담을 덜 수 있습니다.
+              다른 부모님들에게 도움을 요청하거나 궁금한 점을 물어보세요.
             </CardDescription>
           </CardHeader>
-          
-          <CardContent className="space-y-6">
-            {/* 제목 */}
-            <div className="space-y-2">
-              <Label htmlFor="title">제목 *</Label>
-              <Input
-                id="title"
-                placeholder="질문의 제목을 입력하세요"
-                value={formData.title}
-                onChange={handleInputChange('title')}
-                className={errors.title ? 'border-red-500' : ''}
-              />
-              {errors.title && (
-                <p className="text-sm text-red-500">{errors.title}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                명확하고 구체적인 제목이 더 많은 답변을 받는데 도움이 됩니다.
-              </p>
-            </div>
-
-            {/* 카테고리 */}
-            <div className="space-y-2">
-              <Label htmlFor="category">카테고리 *</Label>
-              <Select value={formData.categoryId} onValueChange={handleCategoryChange}>
-                <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="카테고리 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.categoryId && (
-                <p className="text-sm text-red-500">{errors.categoryId}</p>
-              )}
-            </div>
-
-            {/* 질문 내용 */}
-            <div className="space-y-2">
-              <Label htmlFor="content">질문 내용 *</Label>
-              <Textarea
-                id="content"
-                placeholder="질문 내용을 자세히 작성해주세요&#10;&#10;• 현재 상황을 구체적으로 설명해주세요&#10;• 이미 시도해본 방법이 있다면 알려주세요&#10;• 궁금한 점을 명확히 해주세요"
-                rows={12}
-                value={formData.content}
-                onChange={handleInputChange('content')}
-                className={errors.content ? 'border-red-500' : ''}
-              />
-              {errors.content && (
-                <p className="text-sm text-red-500">{errors.content}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                상황, 시도해본 방법, 구체적인 고민 등을 포함하면 더 도움이 됩니다.
-              </p>
-            </div>
-
-            {/* 태그 */}
-            <div className="space-y-2">
-              <Label htmlFor="tags">태그</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    #{tag}
-                    <X
-                      size={14}
-                      className="cursor-pointer hover:text-red-500"
-                      onClick={() => handleRemoveTag(tag)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-              <Input
-                id="tags"
-                placeholder="태그를 입력하고 Enter를 누르세요 (최대 5개)"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleAddTag}
-                disabled={tags.length >= 5}
-              />
-              <p className="text-xs text-muted-foreground">
-                관련 키워드를 태그로 추가하면 비슷한 고민을 가진 부모님들이 질문을 찾기 쉬워집니다.
-              </p>
-            </div>
-
-            {/* 이미지 업로드 */}
-            <div className="space-y-2">
-              <Label>이미지 첨부</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={image}
-                      alt={`첨부 이미지 ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-md"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-1 right-1 h-6 w-6 p-0"
-                      onClick={() => handleRemoveImage(index)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-                
-                {images.length < 5 && (
-                  <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-muted-foreground/25 rounded-md cursor-pointer hover:border-muted-foreground/50 transition-colors">
-                    <ImagePlus className="h-6 w-6 text-muted-foreground mb-1" />
-                    <span className="text-xs text-muted-foreground">이미지 추가</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </label>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="category">카테고리</Label>
+                <Select value={formData.categoryId} onValueChange={handleCategoryChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="카테고리 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.categoryId && (
+                  <p className="text-sm text-destructive">{errors.categoryId}</p>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                질문과 관련된 이미지를 최대 5개까지 첨부할 수 있습니다.
-              </p>
-            </div>
 
-            {/* 옵션 */}
-            <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-2">
+                <Label htmlFor="title">제목</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={handleInputChange('title')}
+                  placeholder="질문 제목을 입력하세요"
+                  maxLength={200}
+                />
+                {errors.title && (
+                  <p className="text-sm text-destructive">{errors.title}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="content">질문 내용</Label>
+                <Textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={handleInputChange('content')}
+                  placeholder="질문 내용을 자세히 설명해주세요"
+                  className="min-h-[300px]"
+                  maxLength={10000}
+                />
+                {errors.content && (
+                  <p className="text-sm text-destructive">{errors.content}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>태그</Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="hover:text-destructive"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleAddTag}
+                  placeholder="태그 입력 후 Enter"
+                  maxLength={20}
+                />
+                <p className="text-xs text-muted-foreground">
+                  최대 5개의 태그를 추가할 수 있습니다.
+                </p>
+              </div>
+
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="anonymous"
                   checked={formData.isAnonymous}
-                  onCheckedChange={(checked) => 
-                    setFormData(prev => ({ ...prev, isAnonymous: checked as boolean }))
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({ ...prev, isAnonymous: checked as boolean }))
                   }
                 />
-                <Label htmlFor="anonymous" className="text-sm">
-                  익명으로 질문하기
-                </Label>
+                <Label htmlFor="anonymous">익명으로 작성</Label>
               </div>
-            </div>
+            </form>
           </CardContent>
-          
-          <CardFooter className="flex justify-between border-t px-6 py-4">
-            <div className="flex gap-2">
+          <CardFooter className="flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isLoading || isSubmitting}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  저장 중...
+                </>
+              ) : (
+                '임시저장'
+              )}
+            </Button>
+            <div className="space-x-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleSaveDraft}
-                disabled={isLoading}
+                onClick={() => router.back()}
+                disabled={isLoading || isSubmitting}
               >
-                {isLoading ? (
+                취소
+              </Button>
+              <Button
+                type="submit"
+                onClick={handleSubmit}
+                disabled={isLoading || isSubmitting}
+              >
+                {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    저장 중...
+                    등록 중...
                   </>
                 ) : (
-                  '임시저장'
+                  '질문 등록'
                 )}
               </Button>
-              <Button variant="outline" asChild>
-                <Link href="/community/questions">취소</Link>
-              </Button>
             </div>
-            
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  등록 중...
-                </>
-              ) : (
-                '질문 등록하기'
-              )}
-            </Button>
           </CardFooter>
         </Card>
-      </form>
-
-      {/* 작성 가이드 */}
-      <Card className="max-w-3xl mx-auto mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">💡 좋은 질문 작성 가이드</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="text-sm space-y-2">
-            <h4 className="font-medium">제목 작성 팁:</h4>
-            <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-              <li>아이의 나이와 구체적인 상황을 포함해주세요</li>
-              <li>예: "12개월 아기가 밤에 자주 깨요" (좋음) vs "수면 문제" (나쁨)</li>
-            </ul>
-          </div>
-          
-          <div className="text-sm space-y-2">
-            <h4 className="font-medium">내용 작성 팁:</h4>
-            <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-              <li>현재 상황을 구체적이고 자세히 설명해주세요</li>
-              <li>이미 시도해본 방법들을 알려주세요</li>
-              <li>언제부터 시작된 문제인지 알려주세요</li>
-              <li>아이의 평소 성향이나 특이사항이 있다면 함께 알려주세요</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

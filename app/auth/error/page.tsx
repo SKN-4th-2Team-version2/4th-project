@@ -2,12 +2,19 @@
 
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function AuthError() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -77,15 +84,13 @@ export default function AuthError() {
               로그인 처리 중 문제가 발생했습니다.
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {getErrorMessage(error)}
-              </AlertDescription>
+              <AlertDescription>{getErrorMessage(error)}</AlertDescription>
             </Alert>
-            
+
             {error && (
               <div className="text-center">
                 <span className="text-xs text-muted-foreground">
@@ -93,7 +98,7 @@ export default function AuthError() {
                 </span>
               </div>
             )}
-            
+
             <div className="space-y-3">
               <Button asChild className="w-full">
                 <Link href="/auth?mode=signin">
@@ -101,7 +106,7 @@ export default function AuthError() {
                   다시 로그인
                 </Link>
               </Button>
-              
+
               <Button variant="outline" asChild className="w-full">
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
@@ -109,12 +114,12 @@ export default function AuthError() {
                 </Link>
               </Button>
             </div>
-            
+
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 문제가 지속되면{' '}
-                <Link 
-                  href="/contact" 
+                <Link
+                  href="/contact"
                   className="underline underline-offset-4 hover:text-primary"
                 >
                   고객센터
@@ -126,5 +131,37 @@ export default function AuthError() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AuthError() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container flex h-screen items-center justify-center">
+          <div className="w-full max-w-md">
+            <Card>
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="p-3 bg-gray-100 rounded-full animate-pulse">
+                    <div className="h-8 w-8 bg-gray-200 rounded-full" />
+                  </div>
+                </div>
+                <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto" />
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="h-16 bg-gray-200 rounded" />
+                <div className="h-10 bg-gray-200 rounded" />
+                <div className="h-10 bg-gray-200 rounded" />
+                <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      }
+    >
+      <AuthErrorContent />
+    </Suspense>
   );
 }

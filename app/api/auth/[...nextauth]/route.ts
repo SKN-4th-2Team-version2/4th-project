@@ -4,6 +4,11 @@ import GoogleProvider from 'next-auth/providers/google';
 import NaverProvider from 'next-auth/providers/naver';
 import { JWT } from 'next-auth/jwt';
 import axios from 'axios';
+import { NextRequest } from 'next/server';
+import { Session } from 'next-auth';
+
+// 클라이언트 사이드에서만 실행되도록 설정
+export const dynamic = 'force-dynamic';
 
 interface ExtendedToken extends JWT {
   djangoAccessToken?: string;
@@ -12,7 +17,13 @@ interface ExtendedToken extends JWT {
   exp?: number;
 }
 
-export const authOptions: NextAuthOptions = {
+interface ExtendedSession extends Session {
+  djangoAccessToken?: string;
+  djangoRefreshToken?: string;
+  error?: string;
+}
+
+const NextAuthProvider: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -47,12 +58,9 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account, user }) {
-      const typedToken = token as ExtendedToken;
-
+    async jwt({ token, account, user }: { token: ExtendedToken; account: any; user: any }) {
       if (account && user) {
         try {
-          // 소셜 로그인 토큰을 Django 백엔드로 전송
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/social/token/`,
             {
@@ -74,7 +82,6 @@ export const authOptions: NextAuthOptions = {
             },
           );
 
-          // Django 토큰과 사용자 정보 저장
           if (response.data.success) {
             return {
               djangoAccessToken: response.data.data.access,
@@ -92,24 +99,23 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // 토큰 갱신이 필요한 경우
       if (
-        typedToken.djangoRefreshToken &&
-        typedToken.exp &&
-        typedToken.exp < Math.floor(Date.now() / 1000) + 300
+        token.djangoRefreshToken &&
+        token.exp &&
+        token.exp < Math.floor(Date.now() / 1000) + 300
       ) {
         try {
           const response = await axios.post(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/token/refresh/`,
             {
-              refresh_token: typedToken.djangoRefreshToken,
+              refresh_token: token.djangoRefreshToken,
             },
             { timeout: 5000 },
           );
 
           if (response.data.success) {
             return {
-              ...typedToken,
+              ...token,
               djangoAccessToken: response.data.data.access,
               exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
             };
@@ -120,26 +126,23 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      return typedToken;
+      return token;
     },
-    async session({ session, token }) {
-      const typedToken = token as ExtendedToken;
-
-      if (typedToken.error) {
-        session.error = typedToken.error;
+    async session({ session, token }: { session: ExtendedSession; token: ExtendedToken }) {
+      if (token.error) {
+        session.error = token.error;
       }
 
-      // Django 토큰과 사용자 정보를 세션에 포함
       const updatedSession = {
         ...session,
-        djangoAccessToken: typedToken.djangoAccessToken,
-        djangoRefreshToken: typedToken.djangoRefreshToken,
+        djangoAccessToken: token.djangoAccessToken,
+        djangoRefreshToken: token.djangoRefreshToken,
         user: {
           ...session.user,
-          ...typedToken.user,
+          ...token.user,
         },
-        expires: typedToken.exp
-          ? new Date(typedToken.exp * 1000).toISOString()
+        expires: token.exp
+          ? new Date(token.exp * 1000).toISOString()
           : session.expires,
       };
       return updatedSession;
@@ -151,9 +154,9 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
+    strategy: 'jwt' as const,
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
   },
   cookies: {
     sessionToken: {
@@ -202,5 +205,8 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
+export const authOptions = NextAuthProvider;
+
 const handler = NextAuth(authOptions);
+
 export { handler as GET, handler as POST };

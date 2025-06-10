@@ -17,14 +17,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Zap, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Suspense } from 'react';
 
-export default function AuthPage() {
+function AuthPageContent() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const error = searchParams.get('error');
   const mode = searchParams.get('mode') as 'signin' | 'signup' | null;
@@ -49,10 +50,11 @@ export default function AuthPage() {
     // 에러 처리
     if (error) {
       let errorMessage = '인증 중 오류가 발생했습니다.';
-      
+
       switch (error) {
         case 'OAuthCallback':
-          errorMessage = '소셜 로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
+          errorMessage =
+            '소셜 로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
           break;
         case 'OAuthSignin':
           errorMessage = '소셜 로그인 중 오류가 발생했습니다.';
@@ -61,10 +63,11 @@ export default function AuthPage() {
           errorMessage = '접근이 거부되었습니다.';
           break;
         case 'RefreshAccessTokenError':
-          errorMessage = '토큰 갱신 중 오류가 발생했습니다. 다시 로그인해주세요.';
+          errorMessage =
+            '토큰 갱신 중 오류가 발생했습니다. 다시 로그인해주세요.';
           break;
       }
-      
+
       toast.error(errorMessage);
     }
   }, [error]);
@@ -146,8 +149,6 @@ export default function AuthPage() {
         Google로 {activeTab === 'signin' ? '로그인' : '회원가입'}
       </Button>
 
-
-
       <Button
         variant="outline"
         className="w-full h-12"
@@ -170,7 +171,9 @@ export default function AuthPage() {
     <div className="grid gap-3">
       <div className="flex items-center space-x-2 text-sm">
         <Shield className="h-4 w-4 text-green-600" />
-        <span className="text-muted-foreground">NextAuth.js로 안전한 OAuth</span>
+        <span className="text-muted-foreground">
+          NextAuth.js로 안전한 OAuth
+        </span>
       </div>
       <div className="flex items-center space-x-2 text-sm">
         <Zap className="h-4 w-4 text-blue-600" />
@@ -196,80 +199,78 @@ export default function AuthPage() {
             </AlertDescription>
           </Alert>
         )}
-        
+
         <Card>
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">마파덜</CardTitle>
-            <CardDescription>
-              소셜 계정으로 안전하고 간편하게<br />
-              마파덜 서비스를 이용해보세요.
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">
+              {activeTab === 'signin' ? '로그인' : '회원가입'}
+            </CardTitle>
+            <CardDescription className="text-center">
+              {activeTab === 'signin'
+                ? '계정에 로그인하세요'
+                : '새로운 계정을 만드세요'}
             </CardDescription>
           </CardHeader>
-          
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'signin' | 'signup')}>
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setActiveTab(v as 'signin' | 'signup')}
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">로그인</TabsTrigger>
                 <TabsTrigger value="signup">회원가입</TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="signin" className="space-y-6 mt-6">
+              <TabsContent value="signin" className="space-y-4">
                 <SocialButtons />
-                
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                      소셜 로그인의 장점
+                      또는
                     </span>
                   </div>
                 </div>
-                
                 <FeaturesList />
               </TabsContent>
-              
-              <TabsContent value="signup" className="space-y-6 mt-6">
+              <TabsContent value="signup" className="space-y-4">
                 <SocialButtons />
-                
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                      소셜 회원가입의 장점
+                      또는
                     </span>
                   </div>
                 </div>
-                
                 <FeaturesList />
               </TabsContent>
             </Tabs>
           </CardContent>
-          
-          <CardFooter className="flex justify-center">
-            <div className="text-sm text-center">
+          <CardFooter className="flex flex-col space-y-4">
+            <div className="text-sm text-center text-muted-foreground">
               {activeTab === 'signin' ? (
                 <>
-                  처음 이용하시나요?{' '}
-                  <button
-                    onClick={() => setActiveTab('signup')}
-                    className="underline underline-offset-4 hover:text-primary font-medium"
+                  계정이 없으신가요?{' '}
+                  <Link
+                    href="/auth?mode=signup"
+                    className="text-primary hover:underline"
                   >
                     회원가입
-                  </button>
+                  </Link>
                 </>
               ) : (
                 <>
                   이미 계정이 있으신가요?{' '}
-                  <button
-                    onClick={() => setActiveTab('signin')}
-                    className="underline underline-offset-4 hover:text-primary font-medium"
+                  <Link
+                    href="/auth?mode=signin"
+                    className="text-primary hover:underline"
                   >
                     로그인
-                  </button>
+                  </Link>
                 </>
               )}
             </div>
@@ -277,5 +278,36 @@ export default function AuthPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container flex h-screen items-center justify-center">
+          <div className="w-full max-w-md">
+            <Card>
+              <CardHeader>
+                <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="h-10 bg-gray-200 rounded" />
+                  <div className="h-10 bg-gray-200 rounded" />
+                  <div className="h-10 bg-gray-200 rounded" />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto" />
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+      }
+    >
+      <AuthPageContent />
+    </Suspense>
   );
 }
