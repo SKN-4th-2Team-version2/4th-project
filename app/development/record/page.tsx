@@ -1,5 +1,4 @@
 import { DevelopmentRecordForm } from '@/components/development/development-record-form';
-import { DevelopmentRecordList } from '@/components/development/development-record-list';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,18 +7,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { AgeGroup } from '@/types/development';
 
-export default function DevelopmentRecordPage({
+export default async function DevelopmentRecordPage({
   searchParams,
 }: {
-  searchParams: { age?: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 }) {
   // URL 쿼리 파라미터에서 연령 그룹 가져오기
-  const ageGroupId = searchParams.age
-    ? Number.parseInt(searchParams.age)
+  const ageGroupId = searchParams?.age
+    ? (searchParams.age as AgeGroup)
     : undefined;
 
   return (
@@ -42,18 +41,7 @@ export default function DevelopmentRecordPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <Tabs defaultValue="record" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="record">새 기록 작성</TabsTrigger>
-              <TabsTrigger value="history">기록 내역</TabsTrigger>
-            </TabsList>
-            <TabsContent value="record" className="mt-6">
-              <DevelopmentRecordForm initialAgeGroup={ageGroupId} />
-            </TabsContent>
-            <TabsContent value="history" className="mt-6">
-              <DevelopmentRecordList />
-            </TabsContent>
-          </Tabs>
+          <DevelopmentRecordForm initialAgeGroup={ageGroupId} />
         </div>
 
         <div className="space-y-6">
@@ -103,20 +91,6 @@ export default function DevelopmentRecordPage({
                   <li>발달 추적 페이지에서 영역별 발달 상황을 확인하세요</li>
                 </ul>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>발달 추적 바로가기</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button className="w-full" asChild>
-                <Link href="/development/tracker">발달 추적 보기</Link>
-              </Button>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/development/timeline">발달 타임라인</Link>
-              </Button>
             </CardContent>
           </Card>
         </div>

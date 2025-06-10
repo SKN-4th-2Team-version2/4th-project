@@ -126,26 +126,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="my-12">
-        <Tabs defaultValue="community" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:w-auto md:inline-flex">
-            <TabsTrigger value="community">커뮤니티 인기 질문</TabsTrigger>
-            <TabsTrigger value="expert">전문가 조언</TabsTrigger>
-          </TabsList>
-          <TabsContent value="community" className="mt-6">
-            <FeaturedQuestions />
-          </TabsContent>
-          <TabsContent value="expert" className="mt-6">
-            <ExpertAdvice />
-          </TabsContent>
-        </Tabs>
-      </section>
-
-      <section className="my-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-        <DevelopmentTracker />
-        <ParentingTips />
-      </section>
-
       <section className="my-12 bg-blue-50 rounded-lg p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">
           마파덜과 함께 육아의 부담을 덜어보세요

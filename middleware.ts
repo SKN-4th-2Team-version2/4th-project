@@ -4,12 +4,34 @@ import { getToken } from 'next-auth/jwt';
 
 // 인증이 필요하지 않은 경로 목록
 const publicPaths = [
+  '/',
+  '/auth',
   '/auth/signin',
-  '/auth/signup',
+  '/auth/signup', 
   '/auth/error',
+  '/auth/callback',
+  '/login',
+  '/signup',
   '/api/auth',
+  '/about',
+  '/privacy',
+  '/terms',
+  '/resources',
+  '/brand',
+  '/community',
+  '/expert',
   '/_next',
   '/favicon.ico',
+];
+
+// 인증이 필요한 경로 목록 (더 구체적으로 관리)
+const protectedPaths = [
+  '/development',
+  '/profile',
+  '/settings',
+  '/community/questions/new',
+  '/community/stories/new',
+  '/community/tips/new',
 ];
 
 export async function middleware(request: NextRequest) {
@@ -31,9 +53,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
-  if (!token) {
-    const url = new URL('/auth/signin', request.url);
+  // 보호된 경로에 대해서만 인증 확인
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+  
+  // 보호된 경로이고 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
+  if (isProtectedPath && !token) {
+    const url = new URL('/auth', request.url);
+    url.searchParams.set('mode', 'signin');
     url.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(url);
   }

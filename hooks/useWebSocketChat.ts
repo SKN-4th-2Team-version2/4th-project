@@ -43,6 +43,8 @@ interface UseWebSocketChatOptions {
   sessionType?: 'normal' | 'stream';
   backendUrl?: string;
   specialChatUrl?: string;
+  continueFromId?: string;
+  initialSessionId?: string;
 }
 
 export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
@@ -52,6 +54,8 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
     backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000',
     specialChatUrl = process.env.NEXT_PUBLIC_SPECIAL_CHAT_URL ||
       'http://127.0.0.1:8080',
+    continueFromId,
+    initialSessionId,
   } = options;
 
   // 카테고리에 따른 엔드포인트 결정
@@ -71,8 +75,64 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
+  // 카테고리별 에러 메시지 생성
+  const getCategorySpecificError = useCallback(
+    (error: string, categoryType: 'general' | 'specialized') => {
+      const categoryInfo = {
+        general: {
+          name: '일반 AI 상담',
+          server: 'Django 서버 (8000포트)',
+          details: 'ChatGPT 기반 일반 상담',
+        },
+        specialized: {
+          name: '전문 AI 상담',
+          server: 'FastAPI 서버 (8080포트)',
+          details: '파인튜닝된 전문 상담 모델',
+        },
+      };
+
+      const info = categoryInfo[categoryType];
+      return `[${info.name}] ${error}`;
+    },
+    [],
+  );
+
   const isInitializingRef = useRef(false);
   const connectionIdRef = useRef<string>('');
+
+  // 서버별 상세 에러 정보 생성
+  const getDetailedErrorInfo = useCallback(
+    (categoryType: 'general' | 'specialized') => {
+      if (categoryType === 'specialized') {
+        return {
+          serverName: 'FastAPI 전문 AI 서버',
+          port: '8080',
+          endpoint: '127.0.0.1:8080',
+          description: '수면·발달 전문 AI 모델',
+          troubleshooting: [
+            'FastAPI 서버가 127.0.0.1:8080에서 실행 중인지 확인',
+            '8080 포트가 다른 프로세스에 의해 사용되지 않는지 확인',
+            'FastAPI 서버 로그에서 오류 메시지 확인',
+            'uvicorn main:app --host 127.0.0.1 --port 8080 명령으로 서버 실행',
+          ],
+        };
+      } else {
+        return {
+          serverName: 'Django 일반 AI 서버',
+          port: '8000',
+          endpoint: 'localhost:8000',
+          description: 'ChatGPT 기반 일반 상담',
+          troubleshooting: [
+            'Django 서버가 localhost:8000에서 실행 중인지 확인',
+            '8000 포트가 사용 가능한지 확인',
+            'Django 서버 로그에서 오류 메시지 확인',
+            'python manage.py runserver 명령으로 서버 실행',
+          ],
+        };
+      }
+    },
+    [],
+  );
 
   // 연결 완전 정리 함수
   const cleanupConnection = useCallback(() => {
@@ -110,9 +170,29 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
   const createSession = useCallback(async () => {
     try {
       console.log(
-        `세션 생성 중: category=${category}, sessionType=${sessionType}, endpoint=${currentBackendUrl}`,
+        `세션 생성 중: sessionType=${sessionType}, endpoint=${currentBackendUrl}`,
       );
 
+      // 기존 세션 복원인 경우
+      if (continueFromId && initialSessionId) {
+        console.log(`기존 세션 복원: ${initialSessionId}`);
+
+        if (isSpecialCategory) {
+          return {
+            success: true,
+            session_id: initialSessionId,
+            websocket_url: '/chatbot/api/session',
+          };
+        } else {
+          return {
+            success: true,
+            session_id: initialSessionId,
+            websocket_url: `/ws/chat/${initialSessionId}/`,
+          };
+        }
+      }
+
+      // 새 세션 생성
       // 특수 카테고리의 경우 다른 엔드포인트 사용
       if (isSpecialCategory) {
         // FastAPI 서버는 웹소켓에서 직접 세션 생성
@@ -121,28 +201,36 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
           success: true,
           session_id: sessionId,
           websocket_url: '/chatbot/api/session', // FastAPI 웹소켓 경로
-          category: category,
         };
       }
 
       // 기본 카테고리의 경우 Django API 사용
-      const response = await fetch(`${currentBackendUrl}/chatbot/api/websocket/session/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest', // CSRF 토큰 문제 해결
+      const response = await fetch(
+        `${currentBackendUrl}/chatbot/api/websocket/session/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest', // CSRF 토큰 문제 해결
+          },
+          credentials: 'include', // 쿠키 포함
+          body: JSON.stringify({
+            type: sessionType,
+            // 카테고리 정보 제거
+          }),
         },
-        credentials: 'include', // 쿠키 포함
-        body: JSON.stringify({
-          type: sessionType,
-          category: category,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('HTTP 오류:', response.status, errorText);
-        throw new Error(`서버 오류: ${response.status} - Django 서버가 실행 중인지 확인해 주세요.`);
+        const categoryType = isSpecialCategory ? 'specialized' : 'general';
+        throw new Error(
+          getCategorySpecificError(
+            `서버 오류 (${response.status}) - 서버가 실행 중인지 확인해 주세요.`,
+            categoryType,
+          ),
+        );
       }
 
       const data = await response.json();
@@ -157,7 +245,15 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
       console.error('세션 생성 실패:', error);
       throw error;
     }
-  }, [currentBackendUrl, sessionType, category, isSpecialCategory]);
+  }, [
+    currentBackendUrl,
+    sessionType,
+    category,
+    isSpecialCategory,
+    getCategorySpecificError,
+    continueFromId,
+    initialSessionId,
+  ]);
 
   // 웹소켓 메시지 처리
   const handleWebSocketMessage = useCallback(
@@ -178,17 +274,12 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
             ]);
           } else if (isSpecialCategory) {
             // 특수 카테고리의 경우 기본 메시지
-            const categoryNames = {
-              sleep: '수면',
-              development: '발달',
-            };
-            const categoryName =
-              categoryNames[category as 'sleep' | 'development'] || category;
+            const categoryName = '전문 AI';
             setMessages((prev) => [
               ...prev,
               {
                 role: 'assistant',
-                content: `안녕하세요! ${categoryName} 전문 AI 상담사입니다. 무엇을 도와드릴까요? ✨`,
+                content: `안녕하세요! ${categoryName} 상담사입니다. 무엇을 도와드릴까요? ✨`,
                 createdAt: new Date(),
               },
             ]);
@@ -359,9 +450,7 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
         .replace('https://', '');
       const wsUrl = `${protocol}//${wsHost}${websocketUrl}`;
 
-      console.log(
-        `웹소켓 연결 시도: ${wsUrl} (category: ${category}, connectionId: ${connectionId})`,
-      );
+      console.log(`웹소켓 연결 시도: ${wsUrl} (connectionId: ${connectionId})`);
 
       const newSocket = new WebSocket(wsUrl);
       websocketRef.current = newSocket;
@@ -383,17 +472,12 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
 
         // 특수 카테고리의 경우 환영 메시지 자동 추가
         if (isSpecialCategory) {
-          const categoryNames = {
-            sleep: '수면',
-            development: '발달',
-          };
-          const categoryName =
-            categoryNames[category as 'sleep' | 'development'] || category;
+          const categoryName = '전문 AI';
           setMessages((prev) => [
             ...prev,
             {
               role: 'assistant',
-              content: `안녕하세요! ${categoryName} 전문 AI 상담사입니다. 무엇을 도와드릴까요? ✨`,
+              content: `안녕하세요! ${categoryName} 상담사입니다. 무엇을 도와드릴까요? ✨`,
               createdAt: new Date(),
             },
           ]);
@@ -503,8 +587,9 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
         // 자동 재연결 시도
         if (reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current++;
+          const categoryType = isSpecialCategory ? 'specialized' : 'general';
           console.log(
-            `재연결 시도 ${reconnectAttempts.current}/${maxReconnectAttempts}`,
+            `재연결 시도 ${reconnectAttempts.current}/${maxReconnectAttempts} (${categoryType})`,
           );
 
           reconnectTimeoutRef.current = setTimeout(() => {
@@ -513,7 +598,13 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
             }
           }, 3000);
         } else {
-          setError('웹소켓 연결에 실패했습니다. 페이지를 새로고침해 주세요.');
+          const categoryType = isSpecialCategory ? 'specialized' : 'general';
+          setError(
+            getCategorySpecificError(
+              '웹소켓 연결에 실패했습니다. 페이지를 새로고침해 주세요.',
+              categoryType,
+            ),
+          );
           setConnectionStatus('error');
         }
       };
@@ -526,8 +617,12 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
         }
 
         console.error('웹소켓 오류:', error);
+        const categoryType = isSpecialCategory ? 'specialized' : 'general';
         setError(
-          `웹소켓 연결 오류가 발생했습니다. ${isSpecialCategory ? '(특수 카테고리 서버 확인 필요)' : ''}`,
+          getCategorySpecificError(
+            '웹소켓 연결 오류가 발생했습니다.',
+            categoryType,
+          ),
         );
         setConnectionStatus('error');
         isInitializingRef.current = false;
@@ -535,7 +630,13 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
 
       setSessionId(newSessionId);
     },
-    [currentBackendUrl, category, handleWebSocketMessage, isSpecialCategory],
+    [
+      currentBackendUrl,
+      category,
+      handleWebSocketMessage,
+      isSpecialCategory,
+      getCategorySpecificError,
+    ],
   );
 
   // 카테고리/세션 타입 변경 시 연결 관리
@@ -555,9 +656,7 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
         // 메시지 초기화
         setMessages([]);
 
-        console.log(
-          `새로운 웹소켓 세션 생성: category=${category}, sessionType=${sessionType}`,
-        );
+        console.log(`새로운 웹소켓 세션 생성: sessionType=${sessionType}`);
 
         // 약간의 지연으로 정리 완료 대기
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -604,7 +703,13 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
         !websocketRef.current ||
         websocketRef.current.readyState !== WebSocket.OPEN
       ) {
-        setError('웹소켓이 연결되지 않았습니다.');
+        const categoryType = isSpecialCategory ? 'specialized' : 'general';
+        setError(
+          getCategorySpecificError(
+            '웹소켓이 연결되지 않았습니다.',
+            categoryType,
+          ),
+        );
         return;
       }
 
@@ -644,17 +749,12 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
       // 특수 카테고리의 경우 로컬에서만 초기화
       setMessages([]);
       // 환영 메시지 다시 추가
-      const categoryNames = {
-        sleep: '수면',
-        development: '발달',
-      };
-      const categoryName =
-        categoryNames[category as 'sleep' | 'development'] || category;
+      const categoryName = '전문 AI';
       setTimeout(() => {
         setMessages([
           {
             role: 'assistant',
-            content: `안녕하세요! ${categoryName} 전문 AI 상담사입니다. 무엇을 도와드릴까요? ✨`,
+            content: `안녕하세요! ${categoryName} 상담사입니다. 무엇을 도와드릴까요? ✨`,
             createdAt: new Date(),
           },
         ]);
@@ -667,7 +767,10 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
       !websocketRef.current ||
       websocketRef.current.readyState !== WebSocket.OPEN
     ) {
-      setError('웹소켓이 연결되지 않았습니다.');
+      const categoryType = isSpecialCategory ? 'specialized' : 'general';
+      setError(
+        getCategorySpecificError('웹소켓이 연결되지 않았습니다.', categoryType),
+      );
       return;
     }
 
@@ -690,7 +793,10 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
       !websocketRef.current ||
       websocketRef.current.readyState !== WebSocket.OPEN
     ) {
-      setError('웹소켓이 연결되지 않았습니다.');
+      const categoryType = isSpecialCategory ? 'specialized' : 'general';
+      setError(
+        getCategorySpecificError('웹소켓이 연결되지 않았습니다.', categoryType),
+      );
       return;
     }
 
@@ -718,7 +824,7 @@ export function useWebSocketChat(options: UseWebSocketChatOptions = {}) {
     messages,
     isLoading,
     isConnected,
-    sessionId,
+    wsSessionId: sessionId,
     error,
     connectionStatus,
     sendMessage,

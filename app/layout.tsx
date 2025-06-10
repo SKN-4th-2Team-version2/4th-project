@@ -4,7 +4,7 @@ import { Inter, Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/providers';
 import Header from '@/components/header';
-import Footer from '@/components/footer';
+import ConditionalFooter from '@/components/conditional-footer';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const notoSansKr = Noto_Sans_KR({
@@ -35,7 +35,7 @@ export default function RootLayout({
           <div className="flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>
-            <Footer />
+            <ConditionalFooter />
           </div>
         </Providers>
       </body>

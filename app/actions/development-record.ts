@@ -1,28 +1,19 @@
 'use server';
 
-import { v4 as uuidv4 } from 'uuid';
+import DevelopmentService from '@/services/development-service';
+import { 
+  CreateDevelopmentRecordRequest,
+  UpdateDevelopmentRecordRequest,
+  DevelopmentRecord,
+  DevelopmentRecordsParams 
+} from '@/types/development';
 
-// 임시 데이터 저장소 (실제로는 데이터베이스를 사용해야 함)
-let developmentRecords: any[] = [];
-
-export async function saveDevelopmentRecord(data: {
-  date: string;
-  ageGroup: string;
-  developmentArea: string;
-  title: string;
-  description: string;
-  images?: string[];
-  recordType?: string;
-}) {
+/**
+ * 발달 기록 저장
+ */
+export async function saveDevelopmentRecord(data: CreateDevelopmentRecordRequest): Promise<string> {
   try {
-    // 실제 구현에서는 데이터베이스에 저장
-    const record = {
-      id: uuidv4(),
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-
-    developmentRecords.push(record);
+    const record = await DevelopmentService.createRecord(data);
     return record.id;
   } catch (error) {
     console.error('Error saving development record:', error);
@@ -30,38 +21,133 @@ export async function saveDevelopmentRecord(data: {
   }
 }
 
-export async function getDevelopmentRecords() {
+/**
+ * 발달 기록 목록 조회
+ */
+export async function getDevelopmentRecords(params: DevelopmentRecordsParams = {}): Promise<DevelopmentRecord[]> {
   try {
-    // 실제 구현에서는 데이터베이스에서 조회
-    // 날짜 내림차순으로 정렬
-    return [...developmentRecords].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
+    const response = await DevelopmentService.getRecords(params);
+    return response.results;
   } catch (error) {
     console.error('Error getting development records:', error);
     throw new Error('Failed to get development records');
   }
 }
 
-export async function getDevelopmentRecord(id: string) {
+/**
+ * 발달 기록 상세 조회
+ */
+export async function getDevelopmentRecord(id: string): Promise<DevelopmentRecord | null> {
   try {
-    // 실제 구현에서는 데이터베이스에서 조회
-    return developmentRecords.find((record) => record.id === id);
+    return await DevelopmentService.getRecord(id);
   } catch (error) {
     console.error('Error getting development record:', error);
-    throw new Error('Failed to get development record');
+    return null;
   }
 }
 
-export async function deleteDevelopmentRecord(id: string) {
+/**
+ * 발달 기록 수정
+ */
+export async function updateDevelopmentRecord(
+  id: string, 
+  data: UpdateDevelopmentRecordRequest
+): Promise<boolean> {
   try {
-    // 실제 구현에서는 데이터베이스에서 삭제
-    developmentRecords = developmentRecords.filter(
-      (record) => record.id !== id,
-    );
+    await DevelopmentService.updateRecord(id, data);
+    return true;
+  } catch (error) {
+    console.error('Error updating development record:', error);
+    throw new Error('Failed to update development record');
+  }
+}
+
+/**
+ * 발달 기록 삭제
+ */
+export async function deleteDevelopmentRecord(id: string): Promise<boolean> {
+  try {
+    await DevelopmentService.deleteRecord(id);
     return true;
   } catch (error) {
     console.error('Error deleting development record:', error);
     throw new Error('Failed to delete development record');
+  }
+}
+
+/**
+ * 발달 기록 통계 조회
+ */
+export async function getDevelopmentStats(childId?: string) {
+  try {
+    return await DevelopmentService.getStats({ childId });
+  } catch (error) {
+    console.error('Error getting development stats:', error);
+    throw new Error('Failed to get development stats');
+  }
+}
+
+/**
+ * 발달 정보 검색
+ */
+export async function searchDevelopmentInfo(query: string) {
+  try {
+    return await DevelopmentService.searchDevelopmentInfo(query);
+  } catch (error) {
+    console.error('Error searching development info:', error);
+    throw new Error('Failed to search development info');
+  }
+}
+
+/**
+ * 발달 이정표 목록 조회
+ */
+export async function getDevelopmentMilestones(params: { ageGroup?: string; developmentArea?: string } = {}) {
+  try {
+    return await DevelopmentService.getMilestones(params);
+  } catch (error) {
+    console.error('Error getting development milestones:', error);
+    throw new Error('Failed to get development milestones');
+  }
+}
+
+/**
+ * 자녀별 달성 이정표 조회
+ */
+export async function getChildMilestones(childId: string) {
+  try {
+    return await DevelopmentService.getChildMilestones({ childId });
+  } catch (error) {
+    console.error('Error getting child milestones:', error);
+    throw new Error('Failed to get child milestones');
+  }
+}
+
+/**
+ * 자녀 이정표 달성 기록
+ */
+export async function createChildMilestone(data: {
+  childId: string;
+  milestoneId: string;
+  achievedDate: string;
+  notes?: string;
+}) {
+  try {
+    return await DevelopmentService.createChildMilestone(data);
+  } catch (error) {
+    console.error('Error creating child milestone:', error);
+    throw new Error('Failed to create child milestone');
+  }
+}
+
+/**
+ * 이정표 달성 진도 조회
+ */
+export async function getMilestoneProgress(childId?: string) {
+  try {
+    return await DevelopmentService.getMilestoneProgress(childId);
+  } catch (error) {
+    console.error('Error getting milestone progress:', error);
+    throw new Error('Failed to get milestone progress');
   }
 }

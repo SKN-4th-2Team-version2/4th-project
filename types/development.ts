@@ -3,20 +3,30 @@
 import { MapaderApiResponse, PaginatedResponse } from './index';
 
 // 발달 영역 타입
-export type DevelopmentArea = 'physical' | 'cognitive' | 'language' | 'social' | 'emotional' | 'self_care';
+export type DevelopmentArea =
+  | 'physical'
+  | 'cognitive'
+  | 'language'
+  | 'social'
+  | 'emotional'
+  | 'self_care';
 
 // 연령 그룹 타입
-export type AgeGroup = 
-  | '0-3months' 
-  | '3-6months' 
-  | '6-9months' 
-  | '9-12months' 
-  | '12-18months' 
-  | '18-24months' 
+export type AgeGroup =
+  | '0-3months'
+  | '3-6months'
+  | '6-9months'
+  | '9-12months'
+  | '12-18months'
+  | '18-24months'
   | '24-36months';
 
 // 기록 유형 타입
-export type RecordType = 'development_record' | 'milestone_achievement' | 'observation' | 'concern';
+export type RecordType =
+  | 'development_record'
+  | 'milestone_achievement'
+  | 'observation'
+  | 'concern';
 
 // 자녀 정보 (발달 기록에서 사용)
 export interface ChildInfo {
@@ -24,11 +34,32 @@ export interface ChildInfo {
   name: string;
 }
 
-// 발달 기록 타입
+// 발달 기록 이미지
+export interface DevelopmentRecordImage {
+  id: string;
+  image_url: string;
+  order: number;
+}
+
+// 발달 기록 타입 (백엔드 응답 형식에 맞춤)
 export interface DevelopmentRecord {
   id: string;
+  childId: string;
+  date: string;
+  ageGroup: AgeGroup;
+  developmentArea: DevelopmentArea;
+  title: string;
+  description: string;
+  recordType: RecordType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 프론트엔드에서 사용하는 발달 기록 타입 (카멜케이스)
+export interface DevelopmentRecordFrontend {
+  id: string;
   child: ChildInfo;
-  date: string; // YYYY-MM-DD 형식
+  date: string;
   ageGroup: AgeGroup;
   developmentArea: DevelopmentArea;
   title: string;
@@ -64,26 +95,30 @@ export interface UpdateDevelopmentRecordRequest {
 // 발달 이정표 타입
 export interface Milestone {
   id: string;
-  ageGroup: AgeGroup;
-  developmentArea: DevelopmentArea;
+  age_group: AgeGroup;
+  age_group_display?: string;
+  development_area: DevelopmentArea;
+  development_area_display?: string;
   title: string;
   description: string;
   order: number;
-  isActive: boolean;
+  is_active: boolean;
 }
 
 // 자녀별 달성 이정표 타입
 export interface ChildMilestone {
   id: string;
+  child: string;
+  child_name?: string;
   milestone: {
     id: string;
     title: string;
-    ageGroup: AgeGroup;
-    developmentArea: DevelopmentArea;
+    age_group: AgeGroup;
+    development_area: DevelopmentArea;
   };
-  achievedDate: string; // YYYY-MM-DD 형식
+  achieved_date: string; // YYYY-MM-DD 형식
   notes?: string;
-  createdAt: string;
+  created_at: string;
 }
 
 // 이정표 달성 기록 요청
@@ -148,11 +183,11 @@ export type DevelopmentStatsResponse = MapaderApiResponse<DevelopmentStats>;
 // 발달 영역 한글 매핑
 export const DEVELOPMENT_AREA_LABELS: Record<DevelopmentArea, string> = {
   physical: '신체 발달',
-  cognitive: '인지 발달', 
+  cognitive: '인지 발달',
   language: '언어 발달',
   social: '사회성 발달',
   emotional: '정서 발달',
-  self_care: '자조 능력'
+  self_care: '자조 능력',
 };
 
 // 연령 그룹 한글 매핑
@@ -163,7 +198,7 @@ export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
   '9-12months': '9-12개월',
   '12-18months': '12-18개월',
   '18-24months': '18-24개월',
-  '24-36months': '24-36개월'
+  '24-36months': '24-36개월',
 };
 
 // 기록 유형 한글 매핑
@@ -171,5 +206,26 @@ export const RECORD_TYPE_LABELS: Record<RecordType, string> = {
   development_record: '발달 기록',
   milestone_achievement: '이정표 달성',
   observation: '관찰 기록',
-  concern: '우려사항'
+  concern: '우려사항',
 };
+
+// 백엔드 응답을 프론트엔드 형식으로 변환하는 헬퍼 함수
+export function transformDevelopmentRecord(
+  backendRecord: DevelopmentRecord,
+): DevelopmentRecordFrontend {
+  return {
+    id: backendRecord.id,
+    child: {
+      id: backendRecord.childId,
+      name: '',
+    },
+    date: backendRecord.date,
+    ageGroup: backendRecord.ageGroup,
+    developmentArea: backendRecord.developmentArea,
+    title: backendRecord.title,
+    description: backendRecord.description,
+    recordType: backendRecord.recordType,
+    images: [],
+    createdAt: backendRecord.createdAt,
+  };
+}

@@ -1,16 +1,30 @@
 import apiClient from './api-client';
 import {
-  UserProfile,
-  UpdateProfileRequest,
   Child,
   CreateChildRequest,
   UpdateChildRequest,
-  UserProfileResponse,
-  UpdateProfileResponse,
   ChildrenListResponse,
   ChildResponse,
-  DeleteChildResponse
+  DeleteChildResponse,
 } from '../types/user';
+
+interface UpdateProfileRequest {
+  name: string;
+}
+
+interface UpdateProfileResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    email: string;
+    name: string;
+    profile_image: string;
+    auth_provider: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
 
 /**
  * 사용자 관련 API 서비스
@@ -19,22 +33,21 @@ export class UserService {
   private static readonly BASE_PATH = '/users';
 
   /**
-   * 현재 사용자 프로필 조회
+   * 프로필 정보 업데이트
    */
-  static async getProfile(): Promise<UserProfileResponse> {
-    return await apiClient.get<UserProfileResponse>(
-      `${this.BASE_PATH}/profile`
-    );
-  }
-
-  /**
-   * 사용자 프로필 업데이트
-   */
-  static async updateProfile(profileData: UpdateProfileRequest): Promise<UpdateProfileResponse> {
-    return await apiClient.put<UpdateProfileResponse>(
-      `${this.BASE_PATH}/profile`,
-      profileData
-    );
+  static async updateProfile(
+    data: UpdateProfileRequest,
+  ): Promise<UpdateProfileResponse> {
+    try {
+      const response = await apiClient.put<UpdateProfileResponse>(
+        `${this.BASE_PATH}/profile/`,
+        data,
+      );
+      return response;
+    } catch (error) {
+      console.error('프로필 업데이트 실패:', error);
+      throw new Error('프로필 업데이트에 실패했습니다');
+    }
   }
 
   /**
@@ -42,17 +55,19 @@ export class UserService {
    */
   static async getChildren(): Promise<ChildrenListResponse> {
     return await apiClient.get<ChildrenListResponse>(
-      `${this.BASE_PATH}/children`
+      `${this.BASE_PATH}/children/`,
     );
   }
 
   /**
    * 자녀 정보 추가
    */
-  static async createChild(childData: CreateChildRequest): Promise<ChildResponse> {
+  static async createChild(
+    childData: CreateChildRequest,
+  ): Promise<ChildResponse> {
     return await apiClient.post<ChildResponse>(
-      `${this.BASE_PATH}/children`,
-      childData
+      `${this.BASE_PATH}/children/`,
+      childData,
     );
   }
 
@@ -60,12 +75,12 @@ export class UserService {
    * 자녀 정보 수정
    */
   static async updateChild(
-    childId: string, 
-    childData: UpdateChildRequest
+    childId: string,
+    childData: UpdateChildRequest,
   ): Promise<ChildResponse> {
     return await apiClient.put<ChildResponse>(
-      `${this.BASE_PATH}/children/${childId}`,
-      childData
+      `${this.BASE_PATH}/children/${childId}/`,
+      childData,
     );
   }
 
@@ -74,39 +89,39 @@ export class UserService {
    */
   static async deleteChild(childId: string): Promise<DeleteChildResponse> {
     return await apiClient.delete<DeleteChildResponse>(
-      `${this.BASE_PATH}/children/${childId}`
+      `${this.BASE_PATH}/children/${childId}/`,
     );
   }
 
   /**
    * 자녀 나이(개월수) 계산 헬퍼 함수
-   * @param birthDate - 생년월일 (YYYY-MM-DD 형식)
+   * @param birth_Date - 생년월일 (YYYY-MM-DD 형식)
    * @returns 개월수
    */
-  static calculateAgeMonths(birthDate: string): number {
-    const birth = new Date(birthDate);
+  static calculateAgeMonths(birth_Date: string): number {
+    const birth = new Date(birth_Date);
     const now = new Date();
-    
+
     const yearDiff = now.getFullYear() - birth.getFullYear();
     const monthDiff = now.getMonth() - birth.getMonth();
-    
+
     return yearDiff * 12 + monthDiff;
   }
 
   /**
    * 생년월일 유효성 검사 헬퍼 함수
-   * @param birthDate - 생년월일 (YYYY-MM-DD 형식)
+   * @param birth_Date - 생년월일 (YYYY-MM-DD 형식)
    * @returns 유효성 여부
    */
-  static validateBirthDate(birthDate: string): boolean {
+  static validateBirthDate(birth_Date: string): boolean {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(birthDate)) {
+    if (!dateRegex.test(birth_Date)) {
       return false;
     }
 
-    const date = new Date(birthDate);
+    const date = new Date(birth_Date);
     const now = new Date();
-    
+
     // 유효한 날짜인지 확인
     if (isNaN(date.getTime())) {
       return false;
@@ -120,7 +135,7 @@ export class UserService {
     // 너무 과거 날짜가 아닌지 확인 (10년 전까지만 허용)
     const tenYearsAgo = new Date();
     tenYearsAgo.setFullYear(now.getFullYear() - 10);
-    
+
     if (date < tenYearsAgo) {
       return false;
     }
@@ -136,17 +151,6 @@ export class UserService {
   static validateChildName(name: string): boolean {
     // 1-20자 사이, 특수문자 제외
     const nameRegex = /^[가-힣a-zA-Z0-9\s]{1,20}$/;
-    return nameRegex.test(name.trim());
-  }
-
-  /**
-   * 사용자 이름 유효성 검사 헬퍼 함수
-   * @param name - 사용자 이름
-   * @returns 유효성 여부
-   */
-  static validateUserName(name: string): boolean {
-    // 1-50자 사이, 특수문자 제외
-    const nameRegex = /^[가-힣a-zA-Z0-9\s]{1,50}$/;
     return nameRegex.test(name.trim());
   }
 }

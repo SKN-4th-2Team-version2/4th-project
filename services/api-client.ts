@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { getSession } from 'next-auth/react';
 
 // API 기본 설정
@@ -9,12 +9,26 @@ const API_TIMEOUT = parseInt(
   10,
 );
 
+// 세션 캐시
+interface SessionCache {
+  djangoAccessToken: string;
+  djangoRefreshToken: string;
+  user: any;
+  lastUpdated: number;
+}
+
+let sessionCache: SessionCache | null = null;
+const CACHE_DURATION = 30 * 60 * 1000; // 30분
+
 /**
  * 기본 API 클라이언트 클래스
  * 모든 API 요청에 공통적으로 필요한 설정을 관리
  */
 class ApiClient {
   private client: AxiosInstance;
+  private isRefreshing = false;
+  private refreshSubscribers: ((token: string) => void)[] = [];
+  private sessionPromise: Promise<any> | null = null;
 
   constructor() {
     this.client = axios.create({
@@ -28,15 +42,47 @@ class ApiClient {
     // 요청 인터셉터 설정
     this.client.interceptors.request.use(
       async (config) => {
-        const session = await getSession();
-        if (session?.djangoAccessToken) {
-          config.headers.Authorization = `Bearer ${session.djangoAccessToken}`;
+        const now = Date.now();
+
+        // 캐시된 토큰이 있고 유효한 경우 사용
+        if (
+          sessionCache?.djangoAccessToken &&
+          now - sessionCache.lastUpdated < CACHE_DURATION
+        ) {
+          config.headers.Authorization = `Bearer ${sessionCache.djangoAccessToken}`;
+          return config;
+        }
+
+        // 이미 진행 중인 세션 요청이 있으면 그것을 재사용
+        if (this.sessionPromise) {
+          const session = await this.sessionPromise;
+          if (session?.djangoAccessToken) {
+            config.headers.Authorization = `Bearer ${session.djangoAccessToken}`;
+          }
+          return config;
+        }
+
+        // 새로운 세션 요청
+        this.sessionPromise = getSession();
+        try {
+          const session = await this.sessionPromise;
+          if (session?.djangoAccessToken) {
+            sessionCache = {
+              djangoAccessToken: session.djangoAccessToken,
+              djangoRefreshToken: session.djangoRefreshToken || '',
+              user: session.user,
+              lastUpdated: now,
+            };
+            config.headers.Authorization = `Bearer ${session.djangoAccessToken}`;
+          }
+        } finally {
+          this.sessionPromise = null;
         }
         return config;
       },
       (error) => {
         return Promise.reject(error);
-      }
+      },
     );
 
     // 응답 인터셉터 설정
@@ -47,44 +93,62 @@ class ApiClient {
 
         // 토큰 만료로 인한 401 에러 처리
         if (error.response?.status === 401 && !originalRequest._retry) {
+          if (this.isRefreshing) {
+            // 이미 토큰 갱신 중이면 대기
+            return new Promise((resolve) => {
+              this.refreshSubscribers.push((token: string) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                resolve(this.client(originalRequest));
+              });
+            });
+          }
+
           originalRequest._retry = true;
+          this.isRefreshing = true;
 
           try {
             const session = await getSession();
-            if (session?.djangoRefreshToken) {
-              // 토큰 갱신 요청
-              const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/token/refresh/`,
-                {
-                  refresh_token: session.djangoRefreshToken,
-                }
-              );
+            if (!session?.djangoRefreshToken) {
+              throw new Error('리프레시 토큰이 없습니다');
+            }
 
-              if (response.data.success) {
-                // 새로운 토큰으로 요청 재시도
-                originalRequest.headers.Authorization = `Bearer ${response.data.data.access_token}`;
-                
-                // 토큰 저장
-                if (typeof window !== 'undefined') {
-                  const storageKey = process.env.NEXT_PUBLIC_TOKEN_STORAGE_KEY || 
-                    '1bb247a99a0f51d506109711452f30b12e274cf882fa46ab6f917fe16e203147';
-                  localStorage.setItem(storageKey, response.data.data.access_token);
-                }
-                
-                return this.client(originalRequest);
-              }
+            // 리프레시 토큰으로 새로운 액세스 토큰 발급
+            const response = await axios.post(
+              `${API_BASE_URL}/auth/token/refresh/`,
+              {
+                refresh_token: session.djangoRefreshToken,
+              },
+            );
+
+            const { access } = response.data;
+
+            // 세션 캐시 업데이트
+            if (sessionCache) {
+              sessionCache.djangoAccessToken = access;
+              sessionCache.lastUpdated = Date.now();
             }
+
+            // 대기 중인 요청들 처리
+            this.refreshSubscribers.forEach((callback) => callback(access));
+            this.refreshSubscribers = [];
+
+            // 새로운 액세스 토큰으로 원래 요청 재시도
+            originalRequest.headers.Authorization = `Bearer ${access}`;
+            return this.client(originalRequest);
           } catch (refreshError) {
-            console.error('토큰 갱신 실패:', refreshError);
-            // 토큰 갱신 실패 시 로그아웃 처리
+            // 리프레시 토큰도 만료된 경우 로그아웃 처리
+            sessionCache = null;
             if (typeof window !== 'undefined') {
-              window.location.href = '/login';
+              window.location.href = '/auth/signin';
             }
+            return Promise.reject(refreshError);
+          } finally {
+            this.isRefreshing = false;
           }
         }
 
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -138,14 +202,9 @@ class ApiClient {
     config?: AxiosRequestConfig,
   ): Promise<T> {
     try {
-      const response: AxiosResponse<T> = await this.client.patch<T>(
-        url,
-        data,
-        config,
-      );
+      const response = await this.client.patch<T>(url, data, config);
       return response.data;
     } catch (error) {
-      console.error(`PATCH request to ${url} failed:`, error);
       throw this.handleError(error);
     }
   }

@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { saveDevelopmentRecord } from '@/app/actions/development-record';
 import { toast } from '@/components/ui/use-toast';
-import { CalendarIcon, Loader2, ImageIcon } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -26,11 +26,19 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { ImageUpload } from './image-upload';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AgeGroup,
+  DevelopmentArea,
+  RecordType,
+  AGE_GROUP_LABELS,
+  DEVELOPMENT_AREA_LABELS,
+  RECORD_TYPE_LABELS,
+} from '@/types/development';
+import { ko } from 'date-fns/locale';
 
 interface DevelopmentRecordFormProps {
-  initialAgeGroup?: number;
+  initialAgeGroup?: AgeGroup;
 }
 
 export function DevelopmentRecordForm({
@@ -38,36 +46,30 @@ export function DevelopmentRecordForm({
 }: DevelopmentRecordFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<Date>(new Date());
-  const [ageGroup, setAgeGroup] = useState<string>(
-    initialAgeGroup?.toString() || '',
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>(
+    initialAgeGroup || '0-3months',
   );
-  const [developmentArea, setDevelopmentArea] = useState<string>('');
+  const [developmentArea, setDevelopmentArea] =
+    useState<DevelopmentArea>('physical');
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [images, setImages] = useState<string[]>([]);
-  const [recordType, setRecordType] = useState<string>('development');
+  const [recordType, setRecordType] =
+    useState<RecordType>('development_record');
+  const [childId, setChildId] = useState<string>(''); // 실제로는 사용자의 자녀 목록에서 선택
 
-  const handleImagesChange = (newImages: string[]) => {
-    setImages(newImages);
-  };
+  // 임시로 고정된 childId 사용 (실제로는 사용자의 자녀 목록에서 선택해야 함)
+  useEffect(() => {
+    // 실제 구현에서는 사용자의 자녀 목록을 조회하고 첫 번째 자녀를 기본값으로 설정
+    setChildId('temp-child-id');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date || !ageGroup || !title || !description) {
+    if (!date || !ageGroup || !title || !description || !childId) {
       toast({
         title: '입력 오류',
         description: '필수 필드를 모두 입력해주세요.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // 발달 영역은 발달 기록 유형일 때만 필수
-    if (recordType === 'development' && !developmentArea) {
-      toast({
-        title: '입력 오류',
-        description: '발달 영역을 선택해주세요.',
         variant: 'destructive',
       });
       return;
@@ -77,13 +79,12 @@ export function DevelopmentRecordForm({
       setIsSubmitting(true);
 
       await saveDevelopmentRecord({
-        date: date.toISOString(),
+        childId,
+        date: format(date, 'yyyy-MM-dd'),
         ageGroup,
-        developmentArea:
-          recordType === 'development' ? developmentArea : recordType,
+        developmentArea,
         title,
         description,
-        images: images.length > 0 ? images : undefined,
         recordType,
       });
 
@@ -95,7 +96,6 @@ export function DevelopmentRecordForm({
       // 폼 초기화
       setTitle('');
       setDescription('');
-      setImages([]);
     } catch (error) {
       console.error('Failed to save development record:', error);
       toast({
@@ -108,32 +108,19 @@ export function DevelopmentRecordForm({
     }
   };
 
-  const ageGroups = [
-    { id: '1', name: '0-6개월' },
-    { id: '2', name: '7-12개월' },
-    { id: '3', name: '1-2세' },
-    { id: '4', name: '3-4세' },
-    { id: '5', name: '5-6세' },
-    { id: '6', name: '7세 이상' },
-  ];
-
-  const developmentAreas = [
-    { id: 'physical', name: '신체 발달' },
-    { id: 'cognitive', name: '인지 발달' },
-    { id: 'language', name: '언어 발달' },
-    { id: 'social', name: '사회성 발달' },
-  ];
-
   return (
     <Card>
       <CardContent className="pt-6">
-        <Tabs value={recordType} onValueChange={setRecordType} className="mb-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="development">발달 기록</TabsTrigger>
-            <TabsTrigger value="milestone">발달 이정표</TabsTrigger>
-            <TabsTrigger value="special-day">특별한 날</TabsTrigger>
-            <TabsTrigger value="health">건강 기록</TabsTrigger>
-            <TabsTrigger value="nutrition">영양 기록</TabsTrigger>
+        <Tabs
+          value={recordType}
+          onValueChange={(value) => setRecordType(value as RecordType)}
+          className="mb-6"
+        >
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="development_record">발달 기록</TabsTrigger>
+            <TabsTrigger value="milestone_achievement">이정표 달성</TabsTrigger>
+            <TabsTrigger value="observation">관찰 기록</TabsTrigger>
+            <TabsTrigger value="concern">우려사항</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -151,7 +138,7 @@ export function DevelopmentRecordForm({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, 'PPP') : '날짜 선택'}
+                    {date ? format(date, 'PPP', { locale: ko }) : '날짜 선택'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -160,6 +147,7 @@ export function DevelopmentRecordForm({
                     selected={date}
                     onSelect={(date) => date && setDate(date)}
                     initialFocus
+                    locale={ko}
                   />
                 </PopoverContent>
               </Popover>
@@ -167,14 +155,17 @@ export function DevelopmentRecordForm({
 
             <div className="space-y-2">
               <Label htmlFor="ageGroup">연령 그룹</Label>
-              <Select value={ageGroup} onValueChange={setAgeGroup}>
+              <Select
+                value={ageGroup}
+                onValueChange={(value) => setAgeGroup(value as AgeGroup)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="연령 그룹 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ageGroups.map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      {group.name}
+                  {Object.entries(AGE_GROUP_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -182,26 +173,26 @@ export function DevelopmentRecordForm({
             </div>
           </div>
 
-          {recordType === 'development' && (
-            <div className="space-y-2">
-              <Label htmlFor="developmentArea">발달 영역</Label>
-              <Select
-                value={developmentArea}
-                onValueChange={setDevelopmentArea}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="발달 영역 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {developmentAreas.map((area) => (
-                    <SelectItem key={area.id} value={area.id}>
-                      {area.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="developmentArea">발달 영역</Label>
+            <Select
+              value={developmentArea}
+              onValueChange={(value) =>
+                setDevelopmentArea(value as DevelopmentArea)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="발달 영역 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(DEVELOPMENT_AREA_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="title">제목</Label>
@@ -210,6 +201,7 @@ export function DevelopmentRecordForm({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="제목을 입력하세요"
+              maxLength={200}
             />
           </div>
 
@@ -219,17 +211,8 @@ export function DevelopmentRecordForm({
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="내용을 입력하세요"
+              placeholder="발달 상황을 자세히 기록해주세요"
               className="min-h-[200px]"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>사진</Label>
-            <ImageUpload
-              images={images}
-              onChange={handleImagesChange}
-              maxImages={5}
             />
           </div>
 

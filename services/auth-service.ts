@@ -1,5 +1,10 @@
 import apiClient from './api-client';
-import { AuthResponse, LogoutResponse, SocialProvider, UserChild } from '../types/auth';
+import {
+  AuthResponse,
+  LogoutResponse,
+  SocialProvider,
+  UserChild,
+} from '../types/auth';
 
 /**
  * 인증 관련 API 서비스 (소셜 로그인 전용)
@@ -170,10 +175,10 @@ export class AuthService {
       // JWT 토큰의 payload 부분을 디코딩하여 만료 시간 확인
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Math.floor(Date.now() / 1000);
-      
+
       // 만료 5분 전부터 갱신 시작
       const shouldRefresh = payload.exp - currentTime < 300;
-      
+
       if (shouldRefresh) {
         // 비동기로 토큰 갱신 시도
         this.refreshTokenIfNeeded().catch(console.error);
@@ -196,18 +201,21 @@ export class AuthService {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Math.floor(Date.now() / 1000);
-      
+
       // 만료 5분 전부터 갱신 시작
       if (payload.exp - currentTime < 300) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/token/refresh/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/token/refresh/`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              refresh_token: this.getRefreshToken(),
+            }),
           },
-          body: JSON.stringify({
-            refresh_token: this.getRefreshToken(),
-          }),
-        });
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -241,7 +249,10 @@ export class AuthService {
    */
   static getRefreshToken(): string | null {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+      return (
+        localStorage.getItem('refresh_token') ||
+        sessionStorage.getItem('refresh_token')
+      );
     }
     return null;
   }
@@ -273,7 +284,10 @@ export class AuthService {
   /**
    * 자녀 정보 수정
    */
-  static async updateChild(childId: string, child: Partial<UserChild>): Promise<UserChild> {
+  static async updateChild(
+    childId: string,
+    child: Partial<UserChild>,
+  ): Promise<UserChild> {
     return await apiClient.put<UserChild>(`/user/children/${childId}/`, child);
   }
 

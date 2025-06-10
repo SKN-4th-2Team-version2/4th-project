@@ -1,7 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import NextAuth from 'next-auth/next';
 import GoogleProvider from 'next-auth/providers/google';
-import KakaoProvider from 'next-auth/providers/kakao';
 import NaverProvider from 'next-auth/providers/naver';
 import { JWT } from 'next-auth/jwt';
 import axios from 'axios';
@@ -35,16 +34,7 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    KakaoProvider({
-      clientId: process.env.KAKAO_CLIENT_ID!,
-      clientSecret: process.env.KAKAO_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: 'consent',
-          response_type: 'code',
-        },
-      },
-    }),
+
     NaverProvider({
       clientId: process.env.NAVER_CLIENT_ID!,
       clientSecret: process.env.NAVER_CLIENT_SECRET!,
@@ -80,36 +70,25 @@ export const authOptions: NextAuthOptions = {
               headers: {
                 'Content-Type': 'application/json',
               },
-              timeout: 10000, // 10초 타임아웃
+              timeout: 10000,
             },
           );
 
-          // Django에서 발급받은 토큰 저장
+          // Django 토큰과 사용자 정보 저장
           if (response.data.success) {
-            typedToken.djangoAccessToken = response.data.data.access;
-            typedToken.djangoRefreshToken = response.data.data.refresh;
-            typedToken.user = {
-              ...response.data.data.user,
-              email: user.email,
-              name: user.name,
-              image: user.image,
+            return {
+              djangoAccessToken: response.data.data.access,
+              djangoRefreshToken: response.data.data.refresh,
+              user: response.data.data.user,
+              exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
             };
-            typedToken.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30일
-          } else {
-            console.error('Django 소셜 로그인 에러:', response.data.message);
-            throw new Error(
-              response.data.message ||
-                '소셜 로그인 처리 중 오류가 발생했습니다.',
-            );
           }
         } catch (error: any) {
           console.error(
             '소셜 로그인 토큰 처리 실패:',
             error.response?.data || error.message,
           );
-          // 에러를 다시 던지지 말고 기본값 설정
-          typedToken.error = 'OAuthCallback';
-          return typedToken;
+          return { error: 'OAuthCallback' };
         }
       }
 
@@ -125,17 +104,19 @@ export const authOptions: NextAuthOptions = {
             {
               refresh_token: typedToken.djangoRefreshToken,
             },
-            { timeout: 5000 }, // 5초 타임아웃
+            { timeout: 5000 },
           );
 
           if (response.data.success) {
-            typedToken.djangoAccessToken = response.data.data.access;
-            typedToken.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30일
+            return {
+              ...typedToken,
+              djangoAccessToken: response.data.data.access,
+              exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+            };
           }
         } catch (error) {
           console.error('토큰 갱신 실패:', error);
-          // 갱신 실패 시 에러 표시
-          typedToken.error = 'RefreshAccessTokenError';
+          return { error: 'RefreshAccessTokenError' };
         }
       }
 
@@ -144,32 +125,28 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       const typedToken = token as ExtendedToken;
 
-      // 토큰에 에러가 있는 경우 세션에 에러 정보 추가
       if (typedToken.error) {
         session.error = typedToken.error;
       }
 
-      if (typedToken) {
-        session.djangoAccessToken = typedToken.djangoAccessToken;
-        session.djangoRefreshToken = typedToken.djangoRefreshToken;
-        if (typedToken.user) {
-          session.user = {
-            ...session.user,
-            ...typedToken.user,
-            email: typedToken.user.email || session.user?.email || '',
-            name: typedToken.user.name || session.user?.name || '',
-            image: typedToken.user.image || session.user?.image || '',
-          };
-        }
-        if (typedToken.exp) {
-          session.expires = new Date(typedToken.exp * 1000).toISOString();
-        }
-      }
-      return session;
+      // Django 토큰과 사용자 정보를 세션에 포함
+      const updatedSession = {
+        ...session,
+        djangoAccessToken: typedToken.djangoAccessToken,
+        djangoRefreshToken: typedToken.djangoRefreshToken,
+        user: {
+          ...session.user,
+          ...typedToken.user,
+        },
+        expires: typedToken.exp
+          ? new Date(typedToken.exp * 1000).toISOString()
+          : session.expires,
+      };
+      return updatedSession;
     },
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: '/auth',
     error: '/auth/error',
   },
   secret: process.env.NEXTAUTH_SECRET,
@@ -187,7 +164,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
-        maxAge: 30 * 24 * 60 * 60, // 30 days
+        maxAge: 30 * 24 * 60 * 60,
       },
     },
     callbackUrl: {
@@ -197,7 +174,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
-        maxAge: 60 * 60, // 1 hour
+        maxAge: 60 * 60,
       },
     },
     csrfToken: {
@@ -208,7 +185,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
-        maxAge: 60 * 60, // 1 hour
+        maxAge: 60 * 60,
       },
     },
     state: {
@@ -219,7 +196,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
-        maxAge: 60 * 60, // 1 hour
+        maxAge: 60 * 60,
       },
     },
   },

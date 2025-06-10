@@ -29,43 +29,65 @@ import {
  * 발달 모니터링 관련 API 서비스
  */
 export class DevelopmentService {
-  private static readonly BASE_PATH = '/development';
+  private static readonly BASE_PATH = '/vectordb/development';
 
   // ========== 발달 기록 관련 ==========
 
   /**
    * 발달 기록 목록 조회
    */
-  static async getRecords(params: DevelopmentRecordsParams = {}): Promise<DevelopmentRecordsResponse> {
+  static async getRecords(params: DevelopmentRecordsParams = {}): Promise<{
+    results: DevelopmentRecord[];
+    count: number;
+    next?: string;
+    previous?: string;
+  }> {
     const queryParams = new URLSearchParams();
     
     if (params.page) queryParams.append('page', params.page.toString());
-    if (params.limit) queryParams.append('limit', params.limit.toString());
-    if (params.childId) queryParams.append('childId', params.childId);
-    if (params.developmentArea) queryParams.append('developmentArea', params.developmentArea);
-    if (params.ageGroup) queryParams.append('ageGroup', params.ageGroup);
-    if (params.recordType) queryParams.append('recordType', params.recordType);
+    if (params.limit) queryParams.append('page_size', params.limit.toString());
+    if (params.childId) queryParams.append('child', params.childId);
+    if (params.developmentArea) queryParams.append('development_area', params.developmentArea);
+    if (params.ageGroup) queryParams.append('age_group', params.ageGroup);
+    if (params.recordType) queryParams.append('record_type', params.recordType);
 
-    const url = `${this.BASE_PATH}/records${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return await apiClient.get<DevelopmentRecordsResponse>(url);
+    const url = `${this.BASE_PATH}/records/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return await apiClient.get<{
+      results: DevelopmentRecord[];
+      count: number;
+      next?: string;
+      previous?: string;
+    }>(url);
   }
 
   /**
    * 발달 기록 상세 조회
    */
-  static async getRecord(recordId: string): Promise<DevelopmentRecordResponse> {
-    return await apiClient.get<DevelopmentRecordResponse>(
-      `${this.BASE_PATH}/records/${recordId}`
+  static async getRecord(recordId: string): Promise<DevelopmentRecord> {
+    return await apiClient.get<DevelopmentRecord>(
+      `${this.BASE_PATH}/records/${recordId}/`
     );
   }
 
   /**
    * 발달 기록 생성
    */
-  static async createRecord(recordData: CreateDevelopmentRecordRequest): Promise<DevelopmentRecordResponse> {
-    return await apiClient.post<DevelopmentRecordResponse>(
-      `${this.BASE_PATH}/records`,
-      recordData
+  static async createRecord(recordData: CreateDevelopmentRecordRequest): Promise<DevelopmentRecord> {
+    // 프론트엔드 필드명을 백엔드 필드명으로 변환
+    const backendData = {
+      child: recordData.childId,
+      date: recordData.date,
+      age_group: recordData.ageGroup,
+      development_area: recordData.developmentArea,
+      title: recordData.title,
+      description: recordData.description,
+      record_type: recordData.recordType,
+      image_urls: recordData.images || []
+    };
+
+    return await apiClient.post<DevelopmentRecord>(
+      `${this.BASE_PATH}/records/`,
+      backendData
     );
   }
 
@@ -75,10 +97,20 @@ export class DevelopmentService {
   static async updateRecord(
     recordId: string,
     recordData: UpdateDevelopmentRecordRequest
-  ): Promise<DevelopmentRecordResponse> {
-    return await apiClient.put<DevelopmentRecordResponse>(
-      `${this.BASE_PATH}/records/${recordId}`,
-      recordData
+  ): Promise<DevelopmentRecord> {
+    // 프론트엔드 필드명을 백엔드 필드명으로 변환
+    const backendData: any = {};
+    if (recordData.date) backendData.date = recordData.date;
+    if (recordData.ageGroup) backendData.age_group = recordData.ageGroup;
+    if (recordData.developmentArea) backendData.development_area = recordData.developmentArea;
+    if (recordData.title) backendData.title = recordData.title;
+    if (recordData.description) backendData.description = recordData.description;
+    if (recordData.recordType) backendData.record_type = recordData.recordType;
+    if (recordData.images) backendData.image_urls = recordData.images;
+
+    return await apiClient.put<DevelopmentRecord>(
+      `${this.BASE_PATH}/records/${recordId}/`,
+      backendData
     );
   }
 
@@ -86,9 +118,25 @@ export class DevelopmentService {
    * 발달 기록 삭제
    */
   static async deleteRecord(recordId: string): Promise<{ success: boolean }> {
-    return await apiClient.delete<{ success: boolean }>(
-      `${this.BASE_PATH}/records/${recordId}`
-    );
+    await apiClient.delete(`${this.BASE_PATH}/records/${recordId}/`);
+    return { success: true };
+  }
+
+  /**
+   * 발달 기록 통계 조회
+   */
+  static async getRecordStats(): Promise<{
+    total_records: number;
+    records_by_area: Record<string, number>;
+    records_by_type: Record<string, number>;
+    records_by_age_group: Record<string, number>;
+  }> {
+    return await apiClient.get<{
+      total_records: number;
+      records_by_area: Record<string, number>;
+      records_by_type: Record<string, number>;
+      records_by_age_group: Record<string, number>;
+    }>(`${this.BASE_PATH}/records/stats/`);
   }
 
   // ========== 발달 이정표 관련 ==========
@@ -96,26 +144,28 @@ export class DevelopmentService {
   /**
    * 발달 이정표 목록 조회
    */
-  static async getMilestones(params: MilestonesParams = {}): Promise<MilestonesResponse> {
+  static async getMilestones(params: MilestonesParams = {}): Promise<Milestone[]> {
     const queryParams = new URLSearchParams();
     
-    if (params.ageGroup) queryParams.append('ageGroup', params.ageGroup);
-    if (params.developmentArea) queryParams.append('developmentArea', params.developmentArea);
+    if (params.ageGroup) queryParams.append('age_group', params.ageGroup);
+    if (params.developmentArea) queryParams.append('development_area', params.developmentArea);
 
-    const url = `${this.BASE_PATH}/milestones${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return await apiClient.get<MilestonesResponse>(url);
+    const url = `${this.BASE_PATH}/milestones/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const response = await apiClient.get<{ results: Milestone[] }>(url);
+    return response.results || [];
   }
 
   /**
    * 자녀별 달성 이정표 조회
    */
-  static async getChildMilestones(params: ChildMilestonesParams): Promise<ChildMilestonesResponse> {
+  static async getChildMilestones(params: ChildMilestonesParams): Promise<ChildMilestone[]> {
     const queryParams = new URLSearchParams();
-    queryParams.append('childId', params.childId);
+    queryParams.append('child', params.childId);
 
-    return await apiClient.get<ChildMilestonesResponse>(
-      `${this.BASE_PATH}/child-milestones?${queryParams.toString()}`
+    const response = await apiClient.get<{ results: ChildMilestone[] }>(
+      `${this.BASE_PATH}/child-milestones/?${queryParams.toString()}`
     );
+    return response.results || [];
   }
 
   /**
@@ -123,26 +173,112 @@ export class DevelopmentService {
    */
   static async createChildMilestone(
     milestoneData: CreateChildMilestoneRequest
-  ): Promise<CreateChildMilestoneResponse> {
-    return await apiClient.post<CreateChildMilestoneResponse>(
-      `${this.BASE_PATH}/child-milestones`,
-      milestoneData
+  ): Promise<ChildMilestone> {
+    // 프론트엔드 필드명을 백엔드 필드명으로 변환
+    const backendData = {
+      child: milestoneData.childId,
+      milestone_id: milestoneData.milestoneId,
+      achieved_date: milestoneData.achievedDate,
+      notes: milestoneData.notes
+    };
+
+    return await apiClient.post<ChildMilestone>(
+      `${this.BASE_PATH}/child-milestones/`,
+      backendData
     );
   }
 
-  // ========== 발달 통계 관련 ==========
+  /**
+   * 이정표 달성 진도 조회
+   */
+  static async getMilestoneProgress(childId?: string): Promise<{
+    overall: {
+      achieved: number;
+      total: number;
+      percentage: number;
+    };
+    by_area: Record<string, {
+      achieved: number;
+      total: number;
+      percentage: number;
+    }>;
+  }> {
+    const queryParams = new URLSearchParams();
+    if (childId) queryParams.append('child_id', childId);
+
+    return await apiClient.get<{
+      overall: {
+        achieved: number;
+        total: number;
+        percentage: number;
+      };
+      by_area: Record<string, {
+        achieved: number;
+        total: number;
+        percentage: number;
+      }>;
+    }>(`${this.BASE_PATH}/child-milestones/progress/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`);
+  }
+
+  // ========== 발달 정보 검색 관련 ==========
+
+  /**
+   * 발달 정보 검색
+   */
+  static async searchDevelopmentInfo(query: string): Promise<{
+    query: string;
+    count: number;
+    results: Array<{
+      content: string;
+      metadata: Record<string, any>;
+    }>;
+  }> {
+    const queryParams = new URLSearchParams();
+    queryParams.append('query', query);
+
+    return await apiClient.get<{
+      query: string;
+      count: number;
+      results: Array<{
+        content: string;
+        metadata: Record<string, any>;
+      }>;
+    }>(`/vectordb/search/?${queryParams.toString()}`);
+  }
+
+  // ========== 통계 관련 ==========
 
   /**
    * 발달 통계 조회
    */
-  static async getStats(params: DevelopmentStatsParams = {}): Promise<DevelopmentStatsResponse> {
-    const queryParams = new URLSearchParams();
-    
-    if (params.childId) queryParams.append('childId', params.childId);
-    if (params.period) queryParams.append('period', params.period);
+  static async getStats(params: DevelopmentStatsParams = {}): Promise<DevelopmentStats> {
+    try {
+      const recordStats = await this.getRecordStats();
+      const milestoneProgress = params.childId 
+        ? await this.getMilestoneProgress(params.childId)
+        : await this.getMilestoneProgress();
 
-    const url = `${this.BASE_PATH}/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return await apiClient.get<DevelopmentStatsResponse>(url);
+      // 백엔드 데이터를 프론트엔드 형식으로 변환
+      const stats: DevelopmentStats = {
+        totalRecords: recordStats.total_records,
+        recordsByArea: recordStats.records_by_area as Record<DevelopmentArea, number>,
+        recordsByType: recordStats.records_by_type as Record<RecordType, number>,
+        recentActivity: {
+          recordsThisWeek: 0, // 추후 백엔드에서 구현 필요
+          recordsThisMonth: 0, // 추후 백엔드에서 구현 필요
+        },
+        milestoneProgress: {
+          achieved: milestoneProgress.overall.achieved,
+          total: milestoneProgress.overall.total,
+          percentage: milestoneProgress.overall.percentage,
+        },
+      };
+
+      return stats;
+    } catch (error) {
+      console.error('Error getting development stats:', error);
+      throw new Error('Failed to get development stats');
+    }
   }
 
   // ========== 헬퍼 함수들 ==========

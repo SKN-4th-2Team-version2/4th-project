@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/use-auth';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import CommunityService from '@/services/community-service';
 import type { Post, Category, CommunityStats, PostType } from '@/types/community';
 import { 
@@ -23,7 +23,8 @@ import {
 } from 'lucide-react';
 
 export default function CommunityPage() {
-  const { isAuthenticated } = useAuth();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
   const [categories, setCategories] = useState<Category[]>([]);
   const [posts, setPosts] = useState<Record<PostType, Post[]>>({
     question: [],
@@ -85,11 +86,7 @@ export default function CommunityPage() {
 
       } catch (error) {
         console.error('커뮤니티 데이터 로드 실패:', error);
-        toast({
-          title: '데이터 로드 실패',
-          description: '커뮤니티 데이터를 불러오는데 실패했습니다.',
-          variant: 'destructive',
-        });
+        toast.error('커뮤니티 데이터를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
       }
@@ -170,14 +167,6 @@ export default function CommunityPage() {
             초보 엄마 아빠들이 서로의 경험과 지식을 나누며 함께 성장하는 공간입니다.
           </p>
         </div>
-        {isAuthenticated && (
-          <Button asChild>
-            <Link href="/community/questions/new">
-              <PenTool className="mr-2 h-4 w-4" />
-              글쓰기
-            </Link>
-          </Button>
-        )}
       </div>
 
       {/* 통계 카드 섹션 */}
@@ -243,9 +232,14 @@ export default function CommunityPage() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">최근 질문</h2>
-              <Button variant="outline" asChild>
-                <Link href="/community/questions">모든 질문 보기</Link>
-              </Button>
+              {isAuthenticated && (
+                <Button asChild>
+                  <Link href="/community/questions/new">
+                    <PenTool className="mr-2 h-4 w-4" />
+                    질문하기
+                  </Link>
+                </Button>
+              )}
             </div>
             {posts.question.length > 0 ? (
               <div className="space-y-4">
@@ -302,9 +296,13 @@ export default function CommunityPage() {
                 <p className="text-muted-foreground mb-4">
                   첫 번째 질문을 올려보세요!
                 </p>
-                {isAuthenticated && (
+                {isAuthenticated ? (
                   <Button asChild>
                     <Link href="/community/questions/new">질문하기</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href="/auth?mode=signin">로그인 후 질문하기</Link>
                   </Button>
                 )}
               </div>
@@ -316,9 +314,14 @@ export default function CommunityPage() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">최근 이야기</h2>
-              <Button variant="outline" asChild>
-                <Link href="/community/stories">모든 이야기 보기</Link>
-              </Button>
+              {isAuthenticated && (
+                <Button asChild>
+                  <Link href="/community/stories/new">
+                    <PenTool className="mr-2 h-4 w-4" />
+                    이야기 작성하기
+                  </Link>
+                </Button>
+              )}
             </div>
             {posts.story.length > 0 ? (
               <div className="space-y-4">
@@ -374,9 +377,13 @@ export default function CommunityPage() {
                 <p className="text-muted-foreground mb-4">
                   첫 번째 육아 이야기를 공유해보세요!
                 </p>
-                {isAuthenticated && (
+                {isAuthenticated ? (
                   <Button asChild>
                     <Link href="/community/stories/new">이야기 작성하기</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href="/auth?mode=signin">로그인 후 이야기 작성하기</Link>
                   </Button>
                 )}
               </div>
@@ -388,9 +395,14 @@ export default function CommunityPage() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">최근 팁</h2>
-              <Button variant="outline" asChild>
-                <Link href="/community/tips">모든 팁 보기</Link>
-              </Button>
+              {isAuthenticated && (
+                <Button asChild>
+                  <Link href="/community/tips/new">
+                    <PenTool className="mr-2 h-4 w-4" />
+                    팁 작성하기
+                  </Link>
+                </Button>
+              )}
             </div>
             {posts.tip.length > 0 ? (
               <div className="space-y-4">
@@ -446,9 +458,13 @@ export default function CommunityPage() {
                 <p className="text-muted-foreground mb-4">
                   첫 번째 육아 팁을 공유해보세요!
                 </p>
-                {isAuthenticated && (
+                {isAuthenticated ? (
                   <Button asChild>
                     <Link href="/community/tips/new">팁 작성하기</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href="/auth?mode=signin">로그인 후 팁 작성하기</Link>
                   </Button>
                 )}
               </div>

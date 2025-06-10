@@ -1,113 +1,34 @@
 'use client';
 
-import { signIn, useSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SignIn() {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   useEffect(() => {
-    // 이미 로그인된 경우 리다이렉트
-    if (status === 'authenticated' && session?.djangoAccessToken) {
-      router.push(callbackUrl);
-    }
-  }, [status, session, callbackUrl, router]);
-
-  useEffect(() => {
-    // 에러 메시지가 있는 경우 처리
+    // NextAuth에서 오는 요청을 새로운 auth 페이지로 리다이렉트
+    const callbackUrl = searchParams.get('callbackUrl');
     const error = searchParams.get('error');
+    
+    const params = new URLSearchParams();
+    params.set('mode', 'signin');
+    
+    if (callbackUrl) {
+      params.set('callbackUrl', callbackUrl);
+    }
+    
     if (error) {
-      console.error('로그인 에러:', error);
-      
-      // 에러 타입에 따른 사용자 친화적 메시지 표시
-      let errorMessage = '로그인 중 오류가 발생했습니다.';
-      
-      switch (error) {
-        case 'OAuthCallback':
-          errorMessage = 'OAuth 콜백 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
-          break;
-        case 'OAuthSignin':
-          errorMessage = '소셜 로그인 중 오류가 발생했습니다.';
-          break;
-        case 'AccessDenied':
-          errorMessage = '액세스가 거부되었습니다.';
-          break;
-      }
-      
-      // 에러 메시지를 사용자에게 표시 (토스트나 alert 등)
-      if (typeof window !== 'undefined') {
-        alert(errorMessage);
-      }
+      params.set('error', error);
     }
-  }, [searchParams]);
-
-  const handleSocialLogin = async (provider: string) => {
-    try {
-      const result = await signIn(provider, {
-        callbackUrl,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        console.error('로그인 실패:', result.error);
-        return;
-      }
-
-      if (result?.ok) {
-        router.push(callbackUrl);
-      }
-    } catch (error) {
-      console.error('로그인 중 오류 발생:', error);
-    }
-  };
-
-  if (status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div>로딩 중...</div>
-      </div>
-    );
-  }
+    
+    router.replace(`/auth?${params.toString()}`);
+  }, [router, searchParams]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle>로그인</CardTitle>
-          <CardDescription>
-            소셜 계정으로 간편하게 로그인하세요
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            className="w-full"
-            onClick={() => handleSocialLogin('google')}
-            variant="outline"
-          >
-            Google로 로그인
-          </Button>
-          <Button
-            className="w-full"
-            onClick={() => handleSocialLogin('kakao')}
-            variant="outline"
-          >
-            카카오로 로그인
-          </Button>
-          <Button
-            className="w-full"
-            onClick={() => handleSocialLogin('naver')}
-            variant="outline"
-          >
-            네이버로 로그인
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
     </div>
   );
-} 
+}

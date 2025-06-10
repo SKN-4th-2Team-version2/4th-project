@@ -9,12 +9,12 @@ import {
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Baby, 
-  Heart, 
-  BookOpen, 
-  AlertTriangle, 
-  TrendingUp, 
+import {
+  Baby,
+  Heart,
+  BookOpen,
+  AlertTriangle,
+  TrendingUp,
   Utensils,
   Shield,
   Activity,
@@ -24,57 +24,57 @@ import {
   HelpCircle,
   ArrowRight,
   Star,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 
 export default function ResourcesPage() {
   // 실제 존재하는 페이지들로 매핑
   const mainCategories = [
-    { 
-      id: 'premature-babies', 
-      name: '이른둥이 가이드', 
+    {
+      id: 'premature-babies',
+      name: '이른둥이 가이드',
       icon: Baby,
       description: '이른둥이(미숙아)의 정의, 건강 관리, 발달 지원',
       href: '/resources/premature-babies',
       color: 'bg-pink-500',
-      featured: true
+      featured: true,
     },
-    { 
-      id: 'development-milestones', 
-      name: '발달 이정표', 
+    {
+      id: 'development-milestones',
+      name: '발달 이정표',
       icon: TrendingUp,
       description: '연령별 발달 단계와 이정표를 확인하세요',
       href: '/resources/development-milestones',
       color: 'bg-blue-500',
-      featured: true
+      featured: true,
     },
-    { 
-      id: 'nutrition-guide', 
-      name: '영양 가이드', 
+    {
+      id: 'nutrition-guide',
+      name: '영양 가이드',
       icon: Utensils,
       description: '연령별 영양 정보와 모유수유 가이드',
       href: '/resources/nutrition-guide',
       color: 'bg-green-500',
-      featured: true
+      featured: true,
     },
-    { 
-      id: 'growth-chart', 
-      name: '성장 차트', 
+    {
+      id: 'growth-chart',
+      name: '성장 차트',
       icon: Activity,
       description: '월령별 신체 성장 기준표',
       href: '/resources/growth-chart',
       color: 'bg-purple-500',
-      featured: true
+      featured: true,
     },
-    { 
-      id: 'emergency-guide', 
-      name: '응급상황 가이드', 
+    {
+      id: 'emergency-guide',
+      name: '응급상황 가이드',
       icon: AlertTriangle,
       description: '응급상황 대처법과 안전 수칙',
       href: '/resources/emergency-guide',
       color: 'bg-red-500',
-      featured: true
-    }
+      featured: true,
+    },
   ];
 
   const quickLinks = [
@@ -82,20 +82,20 @@ export default function ResourcesPage() {
       title: '발달 검사 체크리스트',
       description: '우리 아이 발달 상태 간단 체크',
       href: '/resources/development-milestones',
-      icon: CheckCircle
+      icon: CheckCircle,
     },
     {
       title: '응급상황 대처법',
       description: '위급한 상황별 즉시 대응 가이드',
       href: '/resources/emergency-guide',
-      icon: AlertTriangle
+      icon: AlertTriangle,
     },
     {
       title: '영양소별 필수 정보',
       description: '영유아에게 필요한 영양소 가이드',
       href: '/resources/nutrition-guide',
-      icon: Utensils
-    }
+      icon: Utensils,
+    },
   ];
 
   return (
@@ -106,7 +106,8 @@ export default function ResourcesPage() {
           육아 자료실
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          초보 엄마 아빠를 위한 전문적이고 실용적인 육아 정보를 한 곳에서 만나보세요
+          초보 엄마 아빠를 위한 전문적이고 실용적인 육아 정보를 한 곳에서
+          만나보세요
         </p>
         <div className="flex justify-center items-center gap-4 mt-6">
           <Badge variant="outline" className="px-3 py-1">
@@ -134,10 +135,15 @@ export default function ResourcesPage() {
           {mainCategories.map((category) => {
             const IconComponent = category.icon;
             return (
-              <Card key={category.id} className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20">
+              <Card
+                key={category.id}
+                className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/20"
+              >
                 <Link href={category.href} className="block">
                   <CardHeader className="text-center pb-4">
-                    <div className={`w-16 h-16 ${category.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <div
+                      className={`w-16 h-16 ${category.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}
+                    >
                       <IconComponent className="w-8 h-8 text-white" />
                     </div>
                     <CardTitle className="text-lg group-hover:text-primary transition-colors">
@@ -150,7 +156,11 @@ export default function ResourcesPage() {
                     </p>
                   </CardContent>
                   <CardFooter className="justify-center">
-                    <Button variant="ghost" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                    >
                       자세히 보기
                       <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
@@ -172,7 +182,10 @@ export default function ResourcesPage() {
           {quickLinks.map((link, index) => {
             const IconComponent = link.icon;
             return (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:border-primary/30">
+              <Card
+                key={index}
+                className="group hover:shadow-lg transition-all duration-300 hover:border-primary/30"
+              >
                 <Link href={link.href} className="block p-6">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -192,41 +205,6 @@ export default function ResourcesPage() {
               </Card>
             );
           })}
-        </div>
-      </section>
-
-      {/* 도움말 섹션 */}
-      <section className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-2xl p-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-center md:text-left flex-1">
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
-              <HelpCircle className="w-6 h-6 text-primary" />
-              <h2 className="text-2xl font-bold">더 많은 도움이 필요하신가요?</h2>
-            </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              찾으시는 정보가 없거나 개별적인 상담이 필요하시다면, 
-              육아 커뮤니티나 전문가 상담을 통해 도움을 받아보세요.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <Button variant="outline" size="lg" asChild className="min-w-[160px]">
-                <Link href="/community">
-                  <Users className="w-4 h-4 mr-2" />
-                  커뮤니티 참여
-                </Link>
-              </Button>
-              <Button size="lg" asChild className="min-w-[160px]">
-                <Link href="/expert">
-                  <Heart className="w-4 h-4 mr-2" />
-                  전문가 상담
-                </Link>
-              </Button>
-            </div>
-          </div>
-          <div className="hidden md:block">
-            <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full flex items-center justify-center">
-              <Baby className="w-16 h-16 text-primary" />
-            </div>
-          </div>
         </div>
       </section>
     </div>
