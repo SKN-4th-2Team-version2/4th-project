@@ -23,7 +23,16 @@ export const authOptions: NextAuthOptions = {
           prompt: 'consent',
           access_type: 'offline',
           response_type: 'code',
+          scope: 'openid email profile',
         },
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
       },
     }),
     KakaoProvider({
@@ -178,6 +187,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
+        maxAge: 30 * 24 * 60 * 60, // 30 days
       },
     },
     callbackUrl: {
@@ -187,6 +197,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
+        maxAge: 60 * 60, // 1 hour
       },
     },
     csrfToken: {
@@ -197,6 +208,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
+        maxAge: 60 * 60, // 1 hour
       },
     },
     state: {
@@ -207,6 +219,7 @@ export const authOptions: NextAuthOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         domain: process.env.NEXT_PUBLIC_DOMAIN || undefined,
+        maxAge: 60 * 60, // 1 hour
       },
     },
   },
