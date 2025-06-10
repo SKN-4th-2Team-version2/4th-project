@@ -27,7 +27,7 @@ import {
   PostStatus,
   LikeTargetType,
   POST_TYPE_LABELS,
-  POST_STATUS_LABELS
+  POST_STATUS_LABELS,
 } from '../types/community';
 import { MapaderApiResponse } from '../types/index';
 
@@ -42,12 +42,14 @@ export class CommunityService {
   /**
    * 카테고리 목록 조회
    */
-  static async getCategories(params: CategoriesParams = {}): Promise<CategoriesResponse> {
+  static async getCategories(
+    params: CategoriesParams = {},
+  ): Promise<CategoriesResponse> {
     const queryParams = new URLSearchParams();
-    
+
     if (params.postType) queryParams.append('postType', params.postType);
 
-    const url = `${this.BASE_PATH}/categories${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const url = `${this.BASE_PATH}/categories${queryParams.toString() ? `?${queryParams.toString()}` : '/'}`;
     return await apiClient.get<CategoriesResponse>(url);
   }
 
@@ -58,7 +60,7 @@ export class CommunityService {
    */
   static async getPosts(params: PostsParams = {}): Promise<PostsResponse> {
     const queryParams = new URLSearchParams();
-    
+
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.categoryId) queryParams.append('category_id', params.categoryId);
@@ -74,17 +76,19 @@ export class CommunityService {
    */
   static async getPost(postId: string): Promise<PostDetailResponse> {
     return await apiClient.get<PostDetailResponse>(
-      `${this.BASE_PATH}/posts/${postId}`
+      `${this.BASE_PATH}/posts/${postId}`,
     );
   }
 
   /**
    * 게시물 작성
    */
-  static async createPost(postData: CreatePostRequest): Promise<CreatePostResponse> {
+  static async createPost(
+    postData: CreatePostRequest,
+  ): Promise<CreatePostResponse> {
     return await apiClient.post<CreatePostResponse>(
       `${this.BASE_PATH}/posts/`,
-      postData
+      postData,
     );
   }
 
@@ -93,20 +97,22 @@ export class CommunityService {
    */
   static async updatePost(
     postId: string,
-    postData: UpdatePostRequest
+    postData: UpdatePostRequest,
   ): Promise<UpdatePostResponse> {
     return await apiClient.put<UpdatePostResponse>(
       `${this.BASE_PATH}/posts/${postId}`,
-      postData
+      postData,
     );
   }
 
   /**
    * 게시물 삭제
    */
-  static async deletePost(postId: string): Promise<MapaderApiResponse<{ message: string }>> {
+  static async deletePost(
+    postId: string,
+  ): Promise<MapaderApiResponse<{ message: string }>> {
     return await apiClient.delete<MapaderApiResponse<{ message: string }>>(
-      `${this.BASE_PATH}/posts/${postId}`
+      `${this.BASE_PATH}/posts/${postId}`,
     );
   }
 
@@ -115,11 +121,11 @@ export class CommunityService {
    */
   static async solvePost(
     postId: string,
-    solveData: SolvePostRequest
+    solveData: SolvePostRequest,
   ): Promise<UpdatePostResponse> {
     return await apiClient.put<UpdatePostResponse>(
       `${this.BASE_PATH}/posts/${postId}/solve`,
-      solveData
+      solveData,
     );
   }
 
@@ -128,10 +134,12 @@ export class CommunityService {
   /**
    * 댓글 작성
    */
-  static async createComment(commentData: CreateCommentRequest): Promise<CreateCommentResponse> {
+  static async createComment(
+    commentData: CreateCommentRequest,
+  ): Promise<CreateCommentResponse> {
     return await apiClient.post<CreateCommentResponse>(
       `${this.BASE_PATH}/comments/`,
-      commentData
+      commentData,
     );
   }
 
@@ -140,20 +148,22 @@ export class CommunityService {
    */
   static async updateComment(
     commentId: string,
-    commentData: UpdateCommentRequest
+    commentData: UpdateCommentRequest,
   ): Promise<UpdateCommentResponse> {
     return await apiClient.put<UpdateCommentResponse>(
       `${this.BASE_PATH}/comments/${commentId}`,
-      commentData
+      commentData,
     );
   }
 
   /**
    * 댓글 삭제
    */
-  static async deleteComment(commentId: string): Promise<MapaderApiResponse<{ message: string }>> {
+  static async deleteComment(
+    commentId: string,
+  ): Promise<MapaderApiResponse<{ message: string }>> {
     return await apiClient.delete<MapaderApiResponse<{ message: string }>>(
-      `${this.BASE_PATH}/comments/${commentId}`
+      `${this.BASE_PATH}/comments/${commentId}`,
     );
   }
 
@@ -162,10 +172,27 @@ export class CommunityService {
   /**
    * 좋아요 토글
    */
-  static async toggleLike(likeData: ToggleLikeRequest): Promise<ToggleLikeApiResponse> {
+  static async toggleLike({
+    targetId,
+    targetType,
+  }: ToggleLikeRequest): Promise<ToggleLikeApiResponse> {
+    // CSRF 토큰을 가져옵니다
+    const csrfToken = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('csrftoken='))
+      ?.split('=')[1];
+
     return await apiClient.post<ToggleLikeApiResponse>(
-      `${this.BASE_PATH}/likes`,
-      likeData
+      `${this.BASE_PATH}/likes/toggle`,
+      {
+        target_id: targetId,
+        target_type: targetType,
+      },
+      {
+        headers: {
+          'X-CSRFToken': csrfToken, // CSRF 토큰을 헤더에 추가
+        },
+      },
     );
   }
 
@@ -176,7 +203,7 @@ export class CommunityService {
    */
   static async getStats(): Promise<CommunityStatsResponse> {
     return await apiClient.get<CommunityStatsResponse>(
-      `${this.BASE_PATH}/stats`
+      `${this.BASE_PATH}/stats`,
     );
   }
 
@@ -221,8 +248,9 @@ export class CommunityService {
    * 댓글을 생성일자순으로 정렬
    */
   static sortCommentsByDate(comments: CommunityComment[]): CommunityComment[] {
-    return [...comments].sort((a, b) => 
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return [...comments].sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
   }
 
@@ -232,7 +260,7 @@ export class CommunityService {
   static groupPostsByCategory(posts: Post[]): Record<string, Post[]> {
     const grouped: Record<string, Post[]> = {};
 
-    posts.forEach(post => {
+    posts.forEach((post) => {
       const categoryName = post.category.name;
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
@@ -249,7 +277,7 @@ export class CommunityService {
   static groupPostsByType(posts: Post[]): Record<string, Post[]> {
     const grouped: Record<string, Post[]> = {};
 
-    posts.forEach(post => {
+    posts.forEach((post) => {
       if (!grouped[post.post_type]) {
         grouped[post.post_type] = [];
       }
@@ -264,7 +292,9 @@ export class CommunityService {
    */
   static sortPostsByLatest(posts: Post[]): Post[] {
     return [...posts].sort((a, b) => {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     });
   }
 
@@ -273,8 +303,8 @@ export class CommunityService {
    */
   static sortPostsByPopularity(posts: Post[]): Post[] {
     return [...posts].sort((a, b) => {
-      const scoreA = a.view_count + (a.like_count * 2) + (a.comment_count * 3);
-      const scoreB = b.view_count + (b.like_count * 2) + (b.comment_count * 3);
+      const scoreA = a.view_count + a.like_count * 2 + a.comment_count * 3;
+      const scoreB = b.view_count + b.like_count * 2 + b.comment_count * 3;
       return scoreB - scoreA;
     });
   }
@@ -282,9 +312,12 @@ export class CommunityService {
   /**
    * 핀된 게시물과 일반 게시물 분리
    */
-  static separatePinnedPosts(posts: Post[]): { pinned: Post[]; normal: Post[] } {
-    const pinned = posts.filter(post => post.is_pinned);
-    const normal = posts.filter(post => !post.is_pinned);
+  static separatePinnedPosts(posts: Post[]): {
+    pinned: Post[];
+    normal: Post[];
+  } {
+    const pinned = posts.filter((post) => post.is_pinned);
+    const normal = posts.filter((post) => !post.is_pinned);
 
     return { pinned, normal };
   }
@@ -296,9 +329,10 @@ export class CommunityService {
     if (!searchTerm.trim()) return posts;
 
     const term = searchTerm.toLowerCase();
-    return posts.filter(post => 
-      post.title.toLowerCase().includes(term) ||
-      post.content.toLowerCase().includes(term)
+    return posts.filter(
+      (post) =>
+        post.title.toLowerCase().includes(term) ||
+        post.content.toLowerCase().includes(term),
     );
   }
 
@@ -307,9 +341,9 @@ export class CommunityService {
    */
   static filterQuestionsBySolved(posts: Post[], isSolved?: boolean): Post[] {
     if (isSolved === undefined) return posts;
-    
-    return posts.filter(post => 
-      post.post_type === 'question' && post.is_solved === isSolved
+
+    return posts.filter(
+      (post) => post.post_type === 'question' && post.is_solved === isSolved,
     );
   }
 }

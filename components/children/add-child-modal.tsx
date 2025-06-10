@@ -73,10 +73,10 @@ export function AddChildModal({ onSuccess }: AddChildModalProps) {
       setIsLoading(true);
       const requestData = {
         name: data.name,
-        birthDate: data.birth_Date,
+        birth_date: data.birth_Date,
         ...(data.gender && { gender: data.gender }),
       };
-
+      console.log(requestData);
       await UserService.createChild(requestData);
 
       toast.success('자녀 정보가 추가되었습니다');

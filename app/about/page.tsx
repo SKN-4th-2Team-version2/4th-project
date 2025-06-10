@@ -107,9 +107,6 @@ export default function AboutPage() {
             <p className="text-lg mb-6">
               마파덜과 함께 더 가벼운 육아를 경험해보세요.
             </p>
-            <Button size="lg" asChild>
-              <Link href="/signup">지금 시작하기</Link>
-            </Button>
           </div>
         </div>
       </div>

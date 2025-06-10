@@ -39,10 +39,12 @@ import { ko } from 'date-fns/locale';
 
 interface DevelopmentRecordFormProps {
   initialAgeGroup?: AgeGroup;
+  childId: string;
 }
 
 export function DevelopmentRecordForm({
   initialAgeGroup,
+  childId,
 }: DevelopmentRecordFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<Date>(new Date());
@@ -55,12 +57,11 @@ export function DevelopmentRecordForm({
   const [description, setDescription] = useState<string>('');
   const [recordType, setRecordType] =
     useState<RecordType>('development_record');
-  const [childId, setChildId] = useState<string>(''); // 실제로는 사용자의 자녀 목록에서 선택
 
   // 임시로 고정된 childId 사용 (실제로는 사용자의 자녀 목록에서 선택해야 함)
   useEffect(() => {
     // 실제 구현에서는 사용자의 자녀 목록을 조회하고 첫 번째 자녀를 기본값으로 설정
-    setChildId('temp-child-id');
+    // setChildId('temp-child-id');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,18 +90,18 @@ export function DevelopmentRecordForm({
       });
 
       toast({
-        title: '기록이 저장되었습니다',
-        description: '발달 기록 내역에서 확인할 수 있습니다.',
+        title: '발달 기록이 저장되었습니다',
+        description: '발달 추적 페이지에서 확인할 수 있습니다.',
       });
 
       // 폼 초기화
       setTitle('');
       setDescription('');
     } catch (error) {
-      console.error('Failed to save development record:', error);
+      console.error('발달 기록 저장 실패:', error);
       toast({
-        title: '저장에 실패했습니다',
-        description: '발달 기록을 저장하는 중 오류가 발생했습니다.',
+        title: '발달 기록 저장 실패',
+        description: '잠시 후 다시 시도해주세요.',
         variant: 'destructive',
       });
     } finally {

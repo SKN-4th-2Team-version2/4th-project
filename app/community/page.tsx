@@ -10,16 +10,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import CommunityService from '@/services/community-service';
-import type { Post, Category, CommunityStats, PostType } from '@/types/community';
-import { 
-  MessageCircle, 
-  Eye, 
-  ThumbsUp, 
-  Users, 
+import type {
+  Post,
+  Category,
+  CommunityStats,
+  PostType,
+} from '@/types/community';
+import {
+  MessageCircle,
+  Eye,
+  ThumbsUp,
+  Users,
   PenTool,
   HelpCircle,
   BookOpen,
-  Lightbulb
+  Lightbulb,
 } from 'lucide-react';
 
 export default function CommunityPage() {
@@ -29,7 +34,7 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<Record<PostType, Post[]>>({
     question: [],
     story: [],
-    tip: []
+    tip: [],
   });
   const [stats, setStats] = useState<CommunityStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,51 +44,48 @@ export default function CommunityPage() {
   useEffect(() => {
     const loadCommunityData = async () => {
       setIsLoading(true);
-      
+
       try {
         // 병렬로 데이터 로드
-        const [categoriesRes, statsRes, questionPostsRes, storyPostsRes, tipPostsRes] = await Promise.all([
-          CommunityService.getCategories(),
-          CommunityService.getStats(),
-          CommunityService.getPosts({ postType: 'question', limit: 5 }),
-          CommunityService.getPosts({ postType: 'story', limit: 5 }),
-          CommunityService.getPosts({ postType: 'tip', limit: 5 })
-        ]);
+        const [categoriesRes, questionPostsRes, storyPostsRes, tipPostsRes] =
+          await Promise.all([
+            CommunityService.getCategories(),
+            CommunityService.getPosts({ postType: 'question', limit: 5 }),
+            CommunityService.getPosts({ postType: 'story', limit: 5 }),
+            CommunityService.getPosts({ postType: 'tip', limit: 5 }),
+          ]);
 
         if (categoriesRes.success) {
           setCategories(categoriesRes.data);
         }
 
-        if (statsRes.success) {
-          setStats(statsRes.data);
-        }
-
         // 게시물 데이터 설정
         if (questionPostsRes.success) {
-          setPosts(prev => ({
+          setPosts((prev) => ({
             ...prev,
-            question: questionPostsRes.data || []
+            question: questionPostsRes.data || [],
           }));
         }
         if (storyPostsRes.success) {
-          setPosts(prev => ({
+          setPosts((prev) => ({
             ...prev,
-            story: storyPostsRes.data || []
+            story: storyPostsRes.data || [],
           }));
         }
         if (tipPostsRes.success) {
-          setPosts(prev => ({
+          setPosts((prev) => ({
             ...prev,
-            tip: tipPostsRes.data || []
+            tip: tipPostsRes.data || [],
           }));
         }
 
         console.log('게시글 데이터 로드 상태:', {
-          question: questionPostsRes.success ? questionPostsRes.data?.length || 0 : 0,
+          question: questionPostsRes.success
+            ? questionPostsRes.data?.length || 0
+            : 0,
           story: storyPostsRes.success ? storyPostsRes.data?.length || 0 : 0,
-          tip: tipPostsRes.success ? tipPostsRes.data?.length || 0 : 0
+          tip: tipPostsRes.success ? tipPostsRes.data?.length || 0 : 0,
         });
-
       } catch (error) {
         console.error('커뮤니티 데이터 로드 실패:', error);
         toast.error('커뮤니티 데이터를 불러오는데 실패했습니다.');
@@ -127,17 +129,19 @@ export default function CommunityPage() {
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60),
+    );
+
     if (diffInHours < 1) return '방금 전';
     if (diffInHours < 24) return `${diffInHours}시간 전`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}일 전`;
-    
+
     const diffInWeeks = Math.floor(diffInDays / 7);
     if (diffInWeeks < 4) return `${diffInWeeks}주 전`;
-    
+
     return date.toLocaleDateString();
   };
 
@@ -164,7 +168,8 @@ export default function CommunityPage() {
         <div>
           <h1 className="text-3xl font-bold mb-2">부모 커뮤니티</h1>
           <p className="text-muted-foreground">
-            초보 엄마 아빠들이 서로의 경험과 지식을 나누며 함께 성장하는 공간입니다.
+            초보 엄마 아빠들이 서로의 경험과 지식을 나누며 함께 성장하는
+            공간입니다.
           </p>
         </div>
       </div>
@@ -178,7 +183,9 @@ export default function CommunityPage() {
               <HelpCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts?.questions || 0}</div>
+              <div className="text-2xl font-bold">
+                {stats.totalPosts?.questions || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -187,7 +194,9 @@ export default function CommunityPage() {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts?.stories || 0}</div>
+              <div className="text-2xl font-bold">
+                {stats.totalPosts?.stories || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -196,7 +205,9 @@ export default function CommunityPage() {
               <Lightbulb className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts?.tips || 0}</div>
+              <div className="text-2xl font-bold">
+                {stats.totalPosts?.tips || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -205,14 +216,20 @@ export default function CommunityPage() {
               <MessageCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalComments || 0}</div>
+              <div className="text-2xl font-bold">
+                {stats.totalComments || 0}
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
 
       {/* 게시물 탭 섹션 */}
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PostType)} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as PostType)}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex">
           <TabsTrigger value="question" className="flex items-center gap-2">
             <HelpCircle className="h-4 w-4" />
@@ -244,7 +261,10 @@ export default function CommunityPage() {
             {posts.question.length > 0 ? (
               <div className="space-y-4">
                 {posts.question.map((post) => (
-                  <Card key={post.id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={post.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -252,14 +272,20 @@ export default function CommunityPage() {
                             <Badge className={getPostTypeColor('question')}>
                               {CommunityService.getPostTypeLabel('question')}
                             </Badge>
-                            <Badge variant="outline">{post.category.name}</Badge>
-                            {post.is_solved && <Badge variant="default">해결됨</Badge>}
+                            <Badge variant="outline">
+                              {post.category.name}
+                            </Badge>
+                            {post.is_solved && (
+                              <Badge variant="default">해결됨</Badge>
+                            )}
                           </div>
-                          <Link 
+                          <Link
                             href={`/community/questions/${post.id}`}
                             className="block hover:underline"
                           >
-                            <h3 className="font-semibold mb-1 line-clamp-2">{post.title}</h3>
+                            <h3 className="font-semibold mb-1 line-clamp-2">
+                              {post.title}
+                            </h3>
                           </Link>
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                             {post.content}
@@ -292,7 +318,9 @@ export default function CommunityPage() {
             ) : (
               <div className="text-center py-12">
                 <HelpCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">아직 질문이 없습니다</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  아직 질문이 없습니다
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   첫 번째 질문을 올려보세요!
                 </p>
@@ -326,7 +354,10 @@ export default function CommunityPage() {
             {posts.story.length > 0 ? (
               <div className="space-y-4">
                 {posts.story.map((post) => (
-                  <Card key={post.id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={post.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -334,13 +365,17 @@ export default function CommunityPage() {
                             <Badge className={getPostTypeColor('story')}>
                               {CommunityService.getPostTypeLabel('story')}
                             </Badge>
-                            <Badge variant="outline">{post.category.name}</Badge>
+                            <Badge variant="outline">
+                              {post.category.name}
+                            </Badge>
                           </div>
-                          <Link 
+                          <Link
                             href={`/community/stories/${post.id}`}
                             className="block hover:underline"
                           >
-                            <h3 className="font-semibold mb-1 line-clamp-2">{post.title}</h3>
+                            <h3 className="font-semibold mb-1 line-clamp-2">
+                              {post.title}
+                            </h3>
                           </Link>
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                             {post.content}
@@ -373,7 +408,9 @@ export default function CommunityPage() {
             ) : (
               <div className="text-center py-12">
                 <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">아직 이야기가 없습니다</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  아직 이야기가 없습니다
+                </h3>
                 <p className="text-muted-foreground mb-4">
                   첫 번째 육아 이야기를 공유해보세요!
                 </p>
@@ -383,7 +420,9 @@ export default function CommunityPage() {
                   </Button>
                 ) : (
                   <Button asChild>
-                    <Link href="/auth?mode=signin">로그인 후 이야기 작성하기</Link>
+                    <Link href="/auth?mode=signin">
+                      로그인 후 이야기 작성하기
+                    </Link>
                   </Button>
                 )}
               </div>
@@ -398,8 +437,7 @@ export default function CommunityPage() {
               {isAuthenticated && (
                 <Button asChild>
                   <Link href="/community/tips/new">
-                    <PenTool className="mr-2 h-4 w-4" />
-                    팁 작성하기
+                    <PenTool className="mr-2 h-4 w-4" />팁 작성하기
                   </Link>
                 </Button>
               )}
@@ -407,7 +445,10 @@ export default function CommunityPage() {
             {posts.tip.length > 0 ? (
               <div className="space-y-4">
                 {posts.tip.map((post) => (
-                  <Card key={post.id} className="hover:shadow-md transition-shadow">
+                  <Card
+                    key={post.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -415,13 +456,17 @@ export default function CommunityPage() {
                             <Badge className={getPostTypeColor('tip')}>
                               {CommunityService.getPostTypeLabel('tip')}
                             </Badge>
-                            <Badge variant="outline">{post.category.name}</Badge>
+                            <Badge variant="outline">
+                              {post.category.name}
+                            </Badge>
                           </div>
-                          <Link 
+                          <Link
                             href={`/community/tips/${post.id}`}
                             className="block hover:underline"
                           >
-                            <h3 className="font-semibold mb-1 line-clamp-2">{post.title}</h3>
+                            <h3 className="font-semibold mb-1 line-clamp-2">
+                              {post.title}
+                            </h3>
                           </Link>
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                             {post.content}

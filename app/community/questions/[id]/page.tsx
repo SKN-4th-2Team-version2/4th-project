@@ -17,20 +17,24 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 import CommunityService from '@/services/community-service';
-import type { PostDetail, CreateCommentRequest, CommunityComment } from '@/types/community';
-import { 
-  Eye, 
-  MessageCircle, 
-  ThumbsUp, 
-  Bookmark, 
-  Share2, 
+import type {
+  PostDetail,
+  CreateCommentRequest,
+  CommunityComment,
+} from '@/types/community';
+import {
+  Eye,
+  MessageCircle,
+  ThumbsUp,
+  Bookmark,
+  Share2,
   Flag,
   Reply,
   Crown,
   CheckCircle,
   ChevronRight,
   Edit,
-  Trash2
+  Trash2,
 } from 'lucide-react';
 
 export default function QuestionDetailPage({
@@ -62,7 +66,7 @@ export default function QuestionDetailPage({
             description: '존재하지 않거나 삭제된 게시물입니다.',
             variant: 'destructive',
           });
-          router.push('/community/questions');
+          router.push('/community');
         }
       } catch (error) {
         console.error('게시물 로드 실패:', error);
@@ -71,7 +75,7 @@ export default function QuestionDetailPage({
           description: '게시물을 불러오는데 실패했습니다.',
           variant: 'destructive',
         });
-        router.push('/community/questions');
+        router.push('/community');
       } finally {
         setIsLoading(false);
       }
@@ -85,7 +89,7 @@ export default function QuestionDetailPage({
     if (!isAuthenticated) {
       toast({
         title: '로그인이 필요합니다',
-        description: '좋아요를 누르려면 로그인해주세요.',
+        description: '좋아요 기능을 사용하려면 로그인이 필요합니다.',
         variant: 'destructive',
       });
       return;
@@ -93,16 +97,25 @@ export default function QuestionDetailPage({
 
     try {
       const response = await CommunityService.toggleLike({
-        targetId: unwrappedParams.id,
-        targetType: 'post'
+        targetId: post.id,
+        targetType: 'post',
       });
 
       if (response.success) {
-        setIsLiked(response.data.is_liked);
-        setPost(prev => prev ? {
-          ...prev,
-          like_count: response.data.like_count
-        } : null);
+        setIsLiked(!isLiked);
+        setPost((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            like_count: isLiked ? prev.like_count - 1 : prev.like_count + 1,
+          };
+        });
+      } else {
+        toast({
+          title: '좋아요 처리 실패',
+          description: '잠시 후 다시 시도해주세요.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('좋아요 처리 실패:', error);
@@ -138,7 +151,7 @@ export default function QuestionDetailPage({
       const commentData: CreateCommentRequest = {
         post_id: unwrappedParams.id,
         content: commentContent.trim(),
-        is_anonymous: false
+        is_anonymous: false,
       };
 
       const response = await CommunityService.createComment(commentData);
@@ -148,7 +161,7 @@ export default function QuestionDetailPage({
         if (updatedPost.success) {
           setPost(updatedPost.data);
         }
-        
+
         setCommentContent('');
         toast({
           title: '댓글이 등록되었습니다',
@@ -172,17 +185,23 @@ export default function QuestionDetailPage({
 
     try {
       const response = await CommunityService.solvePost(unwrappedParams.id, {
-        isSolved: !post.is_solved
+        isSolved: !post.is_solved,
       });
 
       if (response.success) {
-        setPost(prev => prev ? {
-          ...prev,
-          is_solved: !prev.is_solved
-        } : null);
+        setPost((prev) =>
+          prev
+            ? {
+                ...prev,
+                is_solved: !prev.is_solved,
+              }
+            : null,
+        );
 
         toast({
-          title: post.is_solved ? '질문이 미해결로 변경되었습니다' : '질문이 해결되었습니다',
+          title: post.is_solved
+            ? '질문이 미해결로 변경되었습니다'
+            : '질문이 해결되었습니다',
         });
       }
     } catch (error) {
@@ -208,19 +227,19 @@ export default function QuestionDetailPage({
     try {
       const response = await CommunityService.toggleLike({
         targetId: commentId,
-        targetType: 'comment'
+        targetType: 'comment',
       });
 
       if (response.success) {
         // 댓글 좋아요 상태 업데이트
-        setPost(prev => {
+        setPost((prev) => {
           if (!prev) return null;
-          
-          const updatedComments = prev.comments.map(comment => {
+
+          const updatedComments = prev.comments.map((comment) => {
             if (comment.id === commentId) {
               return {
                 ...comment,
-                like_count: response.data.like_count
+                like_count: response.data.like_count,
               };
             }
             return comment;
@@ -228,7 +247,7 @@ export default function QuestionDetailPage({
 
           return {
             ...prev,
-            comments: updatedComments
+            comments: updatedComments,
           };
         });
       }
@@ -241,14 +260,16 @@ export default function QuestionDetailPage({
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60),
+    );
+
     if (diffInHours < 1) return '방금 전';
     if (diffInHours < 24) return `${diffInHours}시간 전`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}일 전`;
-    
+
     return date.toLocaleDateString();
   };
 
@@ -305,13 +326,15 @@ export default function QuestionDetailPage({
         <div className="flex justify-between items-start gap-4 flex-wrap">
           <h1 className="text-2xl md:text-3xl font-bold">{post.title}</h1>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={handleLikeToggle}
               className={isLiked ? 'text-red-600 border-red-200 bg-red-50' : ''}
             >
-              <ThumbsUp className={`mr-1 h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+              <ThumbsUp
+                className={`mr-1 h-4 w-4 ${isLiked ? 'fill-current' : ''}`}
+              />
               추천 {post.like_count}
             </Button>
             <Button variant="outline" size="sm">
@@ -331,13 +354,8 @@ export default function QuestionDetailPage({
         <CardHeader className="flex flex-row items-start justify-between space-y-0">
           <div className="flex items-start space-x-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage
-                src={post.user.profile_image}
-                alt={post.user.name}
-              />
-              <AvatarFallback>
-                {getUserInitial(post.user.name)}
-              </AvatarFallback>
+              <AvatarImage src={post.user.profile_image} alt={post.user.name} />
+              <AvatarFallback>{getUserInitial(post.user.name)}</AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center gap-2">
@@ -361,19 +379,17 @@ export default function QuestionDetailPage({
                 해결됨
               </Badge>
             )}
-            {post.is_pinned && (
-              <Badge variant="secondary">📌 고정</Badge>
-            )}
+            {post.is_pinned && <Badge variant="secondary">📌 고정</Badge>}
           </div>
         </CardHeader>
-        
+
         <CardContent>
           <div className="prose prose-sm dark:prose-invert max-w-none mb-4">
             {post.content.split('\n\n').map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
           </div>
-          
+
           {/* 이미지가 있는 경우 */}
           {Array.isArray(post.images) && post.images.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -381,14 +397,18 @@ export default function QuestionDetailPage({
                 <img
                   key={index}
                   src={typeof image === 'string' ? image : image.imageUrl}
-                  alt={typeof image === 'string' ? `이미지 ${index + 1}` : image.altText || `이미지 ${index + 1}`}
+                  alt={
+                    typeof image === 'string'
+                      ? `이미지 ${index + 1}`
+                      : image.altText || `이미지 ${index + 1}`
+                  }
                   className="rounded-lg max-w-full h-auto"
                 />
               ))}
             </div>
           )}
         </CardContent>
-        
+
         <CardFooter className="flex justify-between border-t bg-muted/50 px-6 py-3">
           <div className="flex space-x-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
@@ -404,7 +424,7 @@ export default function QuestionDetailPage({
               추천 {post.like_count}
             </span>
           </div>
-          
+
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <Flag className="mr-1 h-4 w-4" />
@@ -416,50 +436,52 @@ export default function QuestionDetailPage({
 
       {/* 댓글 섹션 */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4">
-          댓글 {post.comment_count}개
-        </h2>
-        
+        <h2 className="text-xl font-bold mb-4">댓글 {post.comment_count}개</h2>
+
         {post.comments.length > 0 ? (
           <div className="space-y-4">
-            {CommunityService.sortCommentsByDate(post.comments).map((comment) => (
-              <Card key={comment.id}>
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <div className="flex items-center space-x-4">
-                    <Avatar>
-                      <AvatarImage
-                        src={comment.user.profile_image}
-                        alt={comment.user.name}
-                      />
-                      <AvatarFallback>
-                        {getUserInitial(comment.user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {comment.is_anonymous ? '익명' : comment.user.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {getRelativeTime(comment.created_at)}
-                      </p>
+            {CommunityService.sortCommentsByDate(post.comments).map(
+              (comment) => (
+                <Card key={comment.id}>
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <div className="flex items-center space-x-4">
+                      <Avatar>
+                        <AvatarImage
+                          src={comment.user.profile_image}
+                          alt={comment.user.name}
+                        />
+                        <AvatarFallback>
+                          {getUserInitial(comment.user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {comment.is_anonymous ? '익명' : comment.user.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {getRelativeTime(comment.created_at)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCommentLike(comment.id)}
-                    >
-                      <ThumbsUp className="h-4 w-4 mr-1" />
-                      {comment.like_count}
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCommentLike(comment.id)}
+                      >
+                        <ThumbsUp className="h-4 w-4 mr-1" />
+                        {comment.like_count}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
+                  </CardContent>
+                </Card>
+              ),
+            )}
           </div>
         ) : (
           <div className="text-center py-8">
@@ -494,7 +516,7 @@ export default function QuestionDetailPage({
                 </Link>
                 을 지켜주세요.
               </p>
-              <Button 
+              <Button
                 onClick={handleCommentSubmit}
                 disabled={isSubmitting || !commentContent.trim()}
               >

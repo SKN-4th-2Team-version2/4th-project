@@ -15,7 +15,7 @@ export interface Child {
 // 자녀 정보 생성 요청
 export interface CreateChildRequest {
   name: string;
-  birthDate: string; // YYYY-MM-DD 형식
+  birth_date: string; // YYYY-MM-DD 형식
   gender?: 'male' | 'female';
 }
 

@@ -17,7 +17,7 @@ export function HeroSection() {
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg">
-            <Link href="/signup">시작하기</Link>
+            <Link href="/auth?mode=signin">시작하기</Link>
           </Button>
           <Button variant="outline" size="lg">
             <Link href="/about">더 알아보기</Link>

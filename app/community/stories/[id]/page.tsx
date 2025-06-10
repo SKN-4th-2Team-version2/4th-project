@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,12 +13,51 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
+import { toast } from '@/components/ui/use-toast';
+import CommunityService from '@/services/CommunityService';
 
 export default function StoryDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const router = useRouter();
+  const [post, setPost] = useState<PostDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    const loadPost = async () => {
+      setIsLoading(true);
+      try {
+        const response = await CommunityService.getPost(params.id);
+        if (response.success) {
+          setPost(response.data);
+          setIsLiked(response.data.is_liked);
+        } else {
+          toast({
+            title: '게시물을 찾을 수 없습니다',
+            description: '존재하지 않거나 삭제된 게시물입니다.',
+            variant: 'destructive',
+          });
+          router.push('/community');
+        }
+      } catch (error) {
+        console.error('게시물 로드 실패:', error);
+        toast({
+          title: '게시물 로드 실패',
+          description: '게시물을 불러오는데 실패했습니다.',
+          variant: 'destructive',
+        });
+        router.push('/community');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [params.id, router]);
+
   // 실제로는 params.id를 사용하여 API에서 데이터를 가져올 것
   const story = {
     id: 1,

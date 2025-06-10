@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,8 +13,47 @@ import {
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
+import { toast } from '@/components/ui/use-toast';
+import CommunityService from '@/services/community';
 
 export default function TipDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const [post, setPost] = useState<PostDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLiked, setIsLiked] = useState(false);
+
+  useEffect(() => {
+    const loadPost = async () => {
+      setIsLoading(true);
+      try {
+        const response = await CommunityService.getPost(params.id);
+        if (response.success) {
+          setPost(response.data);
+          setIsLiked(response.data.is_liked);
+        } else {
+          toast({
+            title: '게시물을 찾을 수 없습니다',
+            description: '존재하지 않거나 삭제된 게시물입니다.',
+            variant: 'destructive',
+          });
+          router.push('/community');
+        }
+      } catch (error) {
+        console.error('게시물 로드 실패:', error);
+        toast({
+          title: '게시물 로드 실패',
+          description: '게시물을 불러오는데 실패했습니다.',
+          variant: 'destructive',
+        });
+        router.push('/community');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [params.id, router]);
+
   // 실제로는 params.id를 사용하여 API에서 데이터를 가져올 것
   const tip = {
     id: 1,
@@ -113,46 +156,12 @@ export default function TipDetailPage({ params }: { params: { id: string } }) {
           >
             <path d="m9 18 6-6-6-6" />
           </svg>
-          <Link href="/community/tips" className="hover:text-primary">
-            육아 팁
-          </Link>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-3 w-3"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
           <span>팁 상세</span>
         </div>
 
         <div className="flex justify-between items-start gap-4 flex-wrap">
           <h1 className="text-2xl md:text-3xl font-bold">{tip.title}</h1>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-1"
-              >
-                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-              </svg>
-              북마크
-            </Button>
             <Button variant="outline" size="sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

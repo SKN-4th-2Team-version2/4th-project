@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChildrenSection } from '@/components/children/children-section';

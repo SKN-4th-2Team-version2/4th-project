@@ -34,6 +34,7 @@ class ApiClient {
     this.client = axios.create({
       baseURL: API_BASE_URL,
       timeout: API_TIMEOUT,
+      withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -43,6 +44,16 @@ class ApiClient {
     this.client.interceptors.request.use(
       async (config) => {
         const now = Date.now();
+
+        // CSRF 토큰을 가져옵니다
+        const csrfToken = document.cookie
+          .split('; ')
+          .find((row) => row.startsWith('csrftoken='))
+          ?.split('=')[1];
+
+        if (csrfToken) {
+          config.headers['X-CSRFToken'] = csrfToken;
+        }
 
         // 캐시된 토큰이 있고 유효한 경우 사용
         if (

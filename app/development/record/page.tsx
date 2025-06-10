@@ -1,3 +1,5 @@
+'use client';
+
 import { DevelopmentRecordForm } from '@/components/development/development-record-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,19 +9,52 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { AgeGroup } from '@/types/development';
+import { ChildService } from '@/services/child-service';
+import { useEffect, useState } from 'react';
+import type { Child } from '@/types/child';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default async function DevelopmentRecordPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  // URL 쿼리 파라미터에서 연령 그룹 가져오기
-  const ageGroupId = searchParams?.age
-    ? (searchParams.age as AgeGroup)
-    : undefined;
+export default function DevelopmentRecordPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [children, setChildren] = useState<Child[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const ageGroupId = searchParams.get('age') as AgeGroup | null;
+  const selectedChildId = searchParams.get('childId');
+
+  useEffect(() => {
+    const loadChildren = async () => {
+      try {
+        const response = await ChildService.getChildren();
+        if (response.success) {
+          setChildren(response.data);
+        }
+      } catch (error) {
+        console.error('자녀 목록 로드 실패:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadChildren();
+  }, []);
+
+  const handleChildChange = (value: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('childId', value);
+    router.push(url.toString());
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -41,7 +76,45 @@ export default async function DevelopmentRecordPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <DevelopmentRecordForm initialAgeGroup={ageGroupId} />
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>자녀 선택</CardTitle>
+              <CardDescription>
+                발달 기록을 작성할 자녀를 선택해주세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={selectedChildId || ''}
+                onValueChange={handleChildChange}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="자녀를 선택해주세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {children.map((child) => (
+                    <SelectItem key={child.id} value={child.id.toString()}>
+                      {child.name} ({child.birthDate})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          {selectedChildId ? (
+            <DevelopmentRecordForm
+              initialAgeGroup={ageGroupId || undefined}
+              childId={selectedChildId}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                발달 기록을 작성할 자녀를 선택해주세요
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
