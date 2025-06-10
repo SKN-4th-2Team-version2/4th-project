@@ -19,14 +19,16 @@ import {
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { AgeGroup } from '@/types/development';
-import { ChildService } from '@/services/child-service';
 import { useEffect, useState } from 'react';
 import type { Child } from '@/types/child';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ChildService } from '@/services/child-service';
+import { useIntegratedAuth } from '@/hooks/use-integrated-auth';
 
 export default function DevelopmentRecordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, isLoading: isAuthLoading } = useIntegratedAuth();
   const [children, setChildren] = useState<Child[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,6 +37,11 @@ export default function DevelopmentRecordPage() {
 
   useEffect(() => {
     const loadChildren = async () => {
+      if (!isAuthenticated) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const response = await ChildService.getChildren();
         if (response.success) {
@@ -47,14 +54,27 @@ export default function DevelopmentRecordPage() {
       }
     };
 
-    loadChildren();
-  }, []);
+    if (!isAuthLoading) {
+      loadChildren();
+    }
+  }, [isAuthenticated, isAuthLoading]);
 
   const handleChildChange = (value: string) => {
     const url = new URL(window.location.href);
     url.searchParams.set('childId', value);
     router.push(url.toString());
   };
+
+  // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthLoading, isAuthenticated, router]);
+
+  if (isAuthLoading || isLoading) {
+    return <div>로딩 중...</div>;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
