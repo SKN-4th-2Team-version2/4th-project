@@ -71,7 +71,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardContent className="p-6 flex flex-col items-center text-center">
               <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mb-4">
                 <svg
@@ -97,7 +97,7 @@ export default function Home() {
                 아이의 발달 이정표를 추적하고 관리하세요
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card>
             <CardContent className="p-6 flex flex-col items-center text-center">

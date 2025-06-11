@@ -110,7 +110,7 @@ export default function Header() {
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
-                {isAuthenticated && (
+                {/* {isAuthenticated && (
                   <NavigationMenuItem>
                     <Link href="/development" legacyBehavior passHref>
                       <NavigationMenuLink
@@ -120,7 +120,7 @@ export default function Header() {
                       </NavigationMenuLink>
                     </Link>
                   </NavigationMenuItem>
-                )}
+                )} */}
                 <NavigationMenuItem>
                   <Link href="/resources" legacyBehavior passHref>
                     <NavigationMenuLink
@@ -236,9 +236,9 @@ export default function Header() {
               <nav className="flex flex-col gap-4">
                 <Link href="/community">커뮤니티</Link>
                 <Link href="/expert">AI전문가 상담</Link>
-                {isAuthenticated && (
+                {/* {isAuthenticated && (
                   <Link href="/development">발달 모니터링</Link>
-                )}
+                )} */}
                 <Link href="/resources">육아 자료실</Link>
               </nav>
             </SheetContent>

@@ -3,29 +3,13 @@ import { getSession } from 'next-auth/react';
 import { AuthService } from '@/lib/auth'; // JWT 토큰 관리
 
 // API 기본 설정
-// 개발 환경에서는 항상 Django 백엔드로 요청
-const getDjangoApiUrl = () => {
-  // 브라우저 환경에서만 실행
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `${protocol}//localhost:8000/api`;
-    }
-  }
-  
-  // 서버 사이드나 프로덕션에서는 환경 변수 사용
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-};
-
-const API_BASE_URL = getDjangoApiUrl();
+const API_BASE_URL = 'http://localhost:8000';
 
 console.log('🔍 환경 변수 확인:', {
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   NODE_ENV: process.env.NODE_ENV,
-  계산된_API_BASE_URL: API_BASE_URL
+  사용될_API_BASE_URL: API_BASE_URL
 });
 
 const API_TIMEOUT = parseInt(
@@ -64,45 +48,74 @@ class ApiClient {
           method: config.method?.toUpperCase()
         });
         
-        // CSRF 토큰을 가져옵니다
-        const csrfToken = document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('csrftoken='))
-          ?.split('=')[1];
+        // CSRF 토큰을 가져옵니다 (브라우저 환경에서만)
+        if (typeof document !== 'undefined') {
+          let csrfToken = document.cookie
+            .split('; ')
+            .find((row) => row.startsWith('csrftoken='))
+            ?.split('=')[1];
 
-        if (csrfToken) {
-          config.headers['X-CSRFToken'] = csrfToken;
-        }
-
-        // 세션 스토리지에서 JWT 토큰 가져오기
-        let accessToken = AuthService.getAccessToken();
-        
-        // 세션 스토리지에 토큰이 없으면 NextAuth 세션에서 가져오기
-        if (!accessToken) {
-          try {
-            const session = await getSession();
-            
-            if (session?.access) {
-              accessToken = session.access;
+          // CSRF 토큰이 없으면 가져오기 시도
+          if (!csrfToken && (config.method?.toLowerCase() === 'post' || 
+                            config.method?.toLowerCase() === 'put' || 
+                            config.method?.toLowerCase() === 'patch' || 
+                            config.method?.toLowerCase() === 'delete')) {
+            try {
+              console.log('🔍 CSRF 토큰이 없어서 가져오는 중...');
+              await axios.get('http://localhost:8000/api/auth/csrf/', { withCredentials: true });
               
-              // NextAuth에서 받은 토큰을 세션 스토리지에 저장
-              const authTokens = {
-                access: session.access,
-                refresh: session.refresh || '',
-                user: session.user
-              };
-              AuthService.setTokens(authTokens);
-              console.log('💾 JWT 토큰을 세션 스토리지에 저장');
+              // 다시 한 번 쿠키에서 토큰 가져오기
+              csrfToken = document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+              
+              console.log('✅ CSRF 토큰 가져오기 성공:', csrfToken ? '토큰 있음' : '토큰 없음');
+            } catch (csrfError) {
+              console.warn('⚠️ CSRF 토큰 가져오기 실패:', csrfError);
             }
-          } catch (error) {
-            console.error('❌ NextAuth 세션 가져오기 실패:', error);
+          }
+
+          if (csrfToken) {
+            config.headers['X-CSRFToken'] = csrfToken;
+            console.log('🔐 CSRF 토큰 설정 완료');
+          } else {
+            console.warn('⚠️ CSRF 토큰을 찾을 수 없습니다');
           }
         }
 
-        if (accessToken) {
-          config.headers.Authorization = `Bearer ${accessToken}`;
-        } else {
-          console.warn('⚠️ 인증 토큰이 없어서 API 요청에 실패할 수 있습니다:', config.url);
+        // 브라우저 환경에서만 JWT 토큰 처리
+        if (typeof window !== 'undefined') {
+          // 세션 스토리지에서 JWT 토큰 가져오기
+          let accessToken = AuthService.getAccessToken();
+          
+          // 세션 스토리지에 토큰이 없으면 NextAuth 세션에서 가져오기
+          if (!accessToken) {
+            try {
+              const session = await getSession();
+              
+              if (session?.access) {
+                accessToken = session.access;
+                
+                // NextAuth에서 받은 토큰을 세션 스토리지에 저장
+                const authTokens = {
+                  access: session.access,
+                  refresh: session.refresh || '',
+                  user: session.user
+                };
+                AuthService.setTokens(authTokens);
+                console.log('💾 JWT 토큰을 세션 스토리지에 저장');
+              }
+            } catch (error) {
+              console.error('❌ NextAuth 세션 가져오기 실패:', error);
+            }
+          }
+
+          if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
+          } else {
+            console.warn('⚠️ 인증 토큰이 없어서 API 요청에 실패할 수 있습니다:', config.url);
+          }
         }
         
         return config;
@@ -162,7 +175,7 @@ class ApiClient {
 
             // 리프레시 토큰으로 새로운 액세스 토큰 발급
             const response = await axios.post(
-              `${API_BASE_URL}/auth/token/refresh/`,
+              'http://localhost:8000/api/auth/token/refresh/',
               {
                 refresh: refreshToken,
               },

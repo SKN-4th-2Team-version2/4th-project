@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { saveDevelopmentRecord } from '@/app/actions/development-record';
 import { toast } from '@/components/ui/use-toast';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -36,6 +35,7 @@ import {
   RECORD_TYPE_LABELS,
 } from '@/types/development';
 import { ko } from 'date-fns/locale';
+import apiClient from '@/services/api-client';
 
 interface DevelopmentRecordFormProps {
   initialAgeGroup?: AgeGroup;
@@ -58,12 +58,6 @@ export function DevelopmentRecordForm({
   const [recordType, setRecordType] =
     useState<RecordType>('development_record');
 
-  // 임시로 고정된 childId 사용 (실제로는 사용자의 자녀 목록에서 선택해야 함)
-  useEffect(() => {
-    // 실제 구현에서는 사용자의 자녀 목록을 조회하고 첫 번째 자녀를 기본값으로 설정
-    // setChildId('temp-child-id');
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -79,15 +73,24 @@ export function DevelopmentRecordForm({
     try {
       setIsSubmitting(true);
 
-      await saveDevelopmentRecord({
-        childId,
+      // 발달 기록 데이터 준비
+      const requestData = {
+        child: childId,
         date: format(date, 'yyyy-MM-dd'),
-        ageGroup,
-        developmentArea,
-        title,
-        description,
-        recordType,
-      });
+        age_group: ageGroup,
+        development_area: developmentArea,
+        title: title,
+        description: description,
+        record_type: recordType,
+        image_urls: []
+      };
+
+      console.log('🔍 발달 기록 생성 요청 데이터:', requestData);
+
+      // API 요청 (CSRF 토큰은 자동으로 처리됨)
+      const response = await apiClient.post('/development/records/', requestData);
+      
+      console.log('✅ 발달 기록 저장 성공:', response);
 
       toast({
         title: '발달 기록이 저장되었습니다',
@@ -98,10 +101,10 @@ export function DevelopmentRecordForm({
       setTitle('');
       setDescription('');
     } catch (error) {
-      console.error('발달 기록 저장 실패:', error);
+      console.error('❌ 발달 기록 저장 실패:', error);
       toast({
         title: '발달 기록 저장 실패',
-        description: '잠시 후 다시 시도해주세요.',
+        description: error instanceof Error ? error.message : '잠시 후 다시 시도해주세요.',
         variant: 'destructive',
       });
     } finally {

@@ -14,10 +14,11 @@ import {
 export async function saveDevelopmentRecord(data: CreateDevelopmentRecordRequest): Promise<string> {
   try {
     const record = await DevelopmentService.createRecord(data);
+    console.log('🔍 발달 기록 저장 결과:', record);
     return record.id;
   } catch (error) {
-    console.error('Error saving development record:', error);
-    throw new Error('Failed to save development record');
+    console.error('발달 기록 저장 실패:', error);
+    throw new Error('발달 기록 저장 실패');
   }
 }
 
